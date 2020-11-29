@@ -2,12 +2,16 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/bitly/go-simplejson"
 	"github.com/gorilla/mux"
 	"go.opentelemetry.io/contrib/propagators/aws/xray/xrayidgenerator"
@@ -98,35 +102,60 @@ func main() {
 		).Bind(commonLabels...)
 	defer valuerecorder.Unbind()
 
-	// work begins
-	ctx, span := tracer.Start(
-		context.Background(),
-		"Example Trace",
-		trace.WithAttributes(commonLabels...))
-	defer span.End()
-
 	// Create new router to handle API endpoints
 	router := mux.NewRouter()
+
+	// Default endpoint is healthcheck
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode("healthcheck")
+	}).Methods(http.MethodGet)
 
 	// HTTP GET: /aws-sdk-call endpoint
 	router.HandleFunc("/aws-sdk-call", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
+
+		sess, err := session.NewSession(&aws.Config{
+			Region: aws.String("us-west-2")},
+		)
+		// Create S3 service client
+		svc := s3.New(sess)
+		svc.ListBuckets(nil)
+		if err != nil {
+			exitErrorf("Unable to list buckets, %v", err)
+		}
+
+		_, span := tracer.Start(
+			context.Background(),
+			"Example Trace",
+			trace.WithAttributes(commonLabels...))
+		defer span.End()
+
 		xrayTraceID := getXrayTraceID(span)
 		json := simplejson.New()
 		json.Set("traceId", xrayTraceID)
 		payload, _ := json.MarshalJSON()
+
 		w.Write(payload)
 	}).Methods(http.MethodGet)
 
 	// HTTP GET: /outgoing-http-call endpoint
 	router.HandleFunc("/outgoing-http-call", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
+
 		response, err := http.Get("https://aws.amazon.com/")
 		if err != nil || response.StatusCode != http.StatusOK {
 			fmt.Println("HTTP call failed:", err)
 			return
 		}
+
+		ctx, span := tracer.Start(
+			context.Background(),
+			"Example Trace",
+			trace.WithAttributes(commonLabels...))
+		defer span.End()
 		valuerecorder.Add(ctx, 1.0)
+
 		xrayTraceID := getXrayTraceID(span)
 		json := simplejson.New()
 		json.Set("traceId", xrayTraceID)
@@ -154,4 +183,9 @@ func handleErr(err error, message string) {
 	if err != nil {
 		log.Fatalf("%s: %v", message, err)
 	}
+}
+
+func exitErrorf(msg string, args ...interface{}) {
+	fmt.Fprintf(os.Stderr, msg+"\n", args...)
+	os.Exit(1)
 }

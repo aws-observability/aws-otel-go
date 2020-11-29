@@ -8,6 +8,7 @@ replace (
 )
 
 require (
+	github.com/aws/aws-sdk-go v1.35.35
 	github.com/bitly/go-simplejson v0.5.0
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/gorilla/mux v1.8.0
