@@ -8,3 +8,10 @@ Thumbs.db
 *.iml
 *.so
 coverage.*
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
