@@ -33,6 +33,7 @@ import (
 func initProvider() func() {
 	ctx := context.Background()
 
+	// Create new OTLP Exporter
 	exp, err := otlp.NewExporter(
 		otlp.WithInsecure(),
 		otlp.WithAddress("localhost:30080"),
@@ -40,6 +41,7 @@ func initProvider() func() {
 	)
 	handleErr(err, "failed to create exporter")
 
+	// Create a new resource object
 	res, err := resource.New(ctx,
 		resource.WithAttributes(
 			semconv.ServiceNameKey.String("test-service"),
@@ -47,9 +49,9 @@ func initProvider() func() {
 	)
 	handleErr(err, "failed to create resource")
 
+	// Initalize traceProvider with Batch Span Processor and XRay ID Generator
 	bsp := sdktrace.NewBatchSpanProcessor(exp)
 	idg := xrayidgenerator.NewIDGenerator()
-
 	tracerProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
 		sdktrace.WithResource(res),
@@ -67,7 +69,6 @@ func initProvider() func() {
 	)
 
 	otel.SetTextMapPropagator(awspropagator.Xray{})
-	// otel.SetTextMapPropagator(propagation.TraceContext{})
 	otel.SetTracerProvider(tracerProvider)
 	otel.SetMeterProvider(pusher.MeterProvider())
 	pusher.Start()
@@ -113,6 +114,7 @@ func main() {
 
 	// HTTP GET: /aws-sdk-call endpoint
 	router.HandleFunc("/aws-sdk-call", func(w http.ResponseWriter, r *http.Request) {
+
 		w.Header().Set("Content-Type", "application/json")
 
 		sess, err := session.NewSession(&aws.Config{
@@ -137,10 +139,12 @@ func main() {
 		payload, _ := json.MarshalJSON()
 
 		w.Write(payload)
+
 	}).Methods(http.MethodGet)
 
 	// HTTP GET: /outgoing-http-call endpoint
 	router.HandleFunc("/outgoing-http-call", func(w http.ResponseWriter, r *http.Request) {
+
 		w.Header().Set("Content-Type", "application/json")
 
 		response, err := http.Get("https://aws.amazon.com/")
@@ -160,7 +164,9 @@ func main() {
 		json := simplejson.New()
 		json.Set("traceId", xrayTraceID)
 		payload, _ := json.MarshalJSON()
+
 		w.Write(payload)
+
 	}).Methods(http.MethodGet)
 
 	// Start server
