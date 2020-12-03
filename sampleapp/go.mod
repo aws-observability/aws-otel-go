@@ -3,15 +3,21 @@ module github.com/aws-observability/aws-otel-go/sampleapp
 go 1.15
 
 replace (
+	go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-sdk-go => /Users/wilbeguo/go/src/github.com/Tenaria/opentelemetry-go-contrib/instrumentation/github.com/aws/aws-sdk-go
 	go.opentelemetry.io/contrib/propagators => /Users/wilbeguo/go/src/github.com/open-o11y/opentelemetry-go-contrib/propagators
 	go.opentelemetry.io/otel/sdk => /Users/wilbeguo/go/src/github.com/Aneurysm9/opentelemetry-go/sdk
 )
 
 require (
 	github.com/aws/aws-sdk-go v1.35.35
+	github.com/aws/aws-xray-sdk-go v1.1.0
 	github.com/bitly/go-simplejson v0.5.0
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/gorilla/mux v1.8.0
+	go.opencensus.io v0.22.5
+	go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-sdk-go v0.0.0-00010101000000-000000000000
+	go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux v0.14.0
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.14.0
 	go.opentelemetry.io/contrib/propagators v0.14.0
 	go.opentelemetry.io/otel v0.14.0
 	go.opentelemetry.io/otel/exporters/otlp v0.14.0

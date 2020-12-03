@@ -1,182 +1,167 @@
+// Copyright The OpenTelemetry Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/bitly/go-simplejson"
 	"github.com/gorilla/mux"
+	obsvsS3 "go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-sdk-go/service/s3/otels3"
+	mocks "go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-sdk-go/service/s3/otels3/mocks"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 	"go.opentelemetry.io/contrib/propagators/aws/xray/xrayidgenerator"
 	awspropagator "go.opentelemetry.io/contrib/propagators/awsxray"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp"
-	"go.opentelemetry.io/otel/label"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/sdk/metric/controller/push"
 	"go.opentelemetry.io/otel/sdk/metric/processor/basic"
 	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
-	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/semconv"
 	"go.opentelemetry.io/otel/trace"
-	"google.golang.org/grpc"
 )
 
-func initProvider() func() {
-	ctx := context.Background()
+var tracer = otel.Tracer("mux-server")
+var meter = otel.Meter("test-meter")
+
+func main() {
+
+	tracerProvider := initProvider()
+
+	valuerecorder := metric.Must(meter).
+		NewFloat64Counter(
+			"an_important_metric",
+			metric.WithDescription("Measures the cumulative epicness of the app"),
+		)
+
+	_, err := obsvsS3.NewInstrumentedS3Client(
+		&mocks.MockS3Client{},
+		obsvsS3.WithTracerProvider(tracerProvider),
+		obsvsS3.WithSpanCorrelation(true),
+	)
+	handleErr(err, "failed to create new S3 Client")
+
+	tracer := tracerProvider.Tracer("http-tracer")
+	outerSpanCtx, span := tracer.Start(
+		context.Background(),
+		"http_request_served",
+	)
+	defer span.End()
+
+	r := mux.NewRouter()
+	r.Use(otelmux.Middleware("my-server"))
+
+	r.HandleFunc("/aws-sdk-call", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		w.Header().Set("Content-Type", "application/json")
+
+		// _, _ = client.PutObjectWithContext(outerSpanCtx, &s3.PutObjectInput{
+		// 	Bucket: aws.String("test-bucket"),
+		// 	Key:    aws.String("010101"),
+		// 	Body:   bytes.NewReader([]byte("foo")),
+		// })
+
+		// time.Sleep(time.Second * 15)
+
+		xrayTraceID := getXrayTraceID(span)
+		json := simplejson.New()
+		json.Set("traceId", xrayTraceID)
+		payload, _ := json.MarshalJSON()
+
+		w.Write(payload)
+
+	}))
+
+	r.HandleFunc("/outgoing-http-call", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		w.Header().Set("Content-Type", "application/json")
+
+		// response, err := http.Get("https://aws.amazon.com/")
+		http.Get("https://aws.amazon.com/")
+		// if err != nil || response.StatusCode != http.StatusOK {
+		// 	handleErr(err, "HTTP call to aws.amazon.com failed")
+		// }
+
+		valuerecorder.Add(outerSpanCtx, 1.0)
+
+		xrayTraceID := getXrayTraceID(span)
+		json := simplejson.New()
+		json.Set("traceId", xrayTraceID)
+		payload, _ := json.MarshalJSON()
+
+		w.Write(payload)
+
+	}))
+
+	http.Handle("/", r)
+
+	// Start server
+	address := os.Getenv("LISTEN_ADDRESS")
+	if len(address) > 0 {
+		http.ListenAndServe(fmt.Sprintf(":%s", address), nil)
+	} else {
+		// Default port 8000
+		http.ListenAndServe(":8080", nil)
+	}
+}
+
+func initProvider() *sdktrace.TracerProvider {
 
 	// Create new OTLP Exporter
-	exp, err := otlp.NewExporter(
+	exporter, err := otlp.NewExporter(
 		otlp.WithInsecure(),
 		otlp.WithAddress("localhost:30080"),
-		otlp.WithGRPCDialOption(grpc.WithBlock()),
+		// otlp.WithGRPCDialOption(grpc.WithBlock()),
 	)
-	handleErr(err, "failed to create exporter")
+	handleErr(err, "failed to create new OTLP exporter")
 
-	// Create a new resource object
-	res, err := resource.New(ctx,
-		resource.WithAttributes(
-			semconv.ServiceNameKey.String("test-service"),
-		),
-	)
-	handleErr(err, "failed to create resource")
-
-	// Initalize traceProvider with Batch Span Processor and XRay ID Generator
-	bsp := sdktrace.NewBatchSpanProcessor(exp)
+	cfg := sdktrace.Config{
+		DefaultSampler: sdktrace.AlwaysSample(),
+	}
+	// bsp := sdktrace.NewBatchSpanProcessor(exporter)
+	ssp := sdktrace.NewSimpleSpanProcessor(exporter)
 	idg := xrayidgenerator.NewIDGenerator()
-	tracerProvider := sdktrace.NewTracerProvider(
-		sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
-		sdktrace.WithResource(res),
-		sdktrace.WithSpanProcessor(bsp),
+
+	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithConfig(cfg),
+		sdktrace.WithSyncer(exporter),
+		sdktrace.WithSpanProcessor(ssp),
 		sdktrace.WithIDGenerator(idg),
 	)
 
 	pusher := push.New(
 		basic.New(
 			simple.NewWithExactDistribution(),
-			exp,
+			exporter,
 		),
-		exp,
+		exporter,
 		push.WithPeriod(2*time.Second),
 	)
 
+	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(awspropagator.Xray{})
-	otel.SetTracerProvider(tracerProvider)
 	otel.SetMeterProvider(pusher.MeterProvider())
 	pusher.Start()
 
-	return func() {
-		handleErr(tracerProvider.Shutdown(ctx), "failed to shutdown provider")
-		handleErr(exp.Shutdown(ctx), "failed to stop exporter")
-		pusher.Stop() // pushes any last exports to the receiver
-	}
-}
-
-func main() {
-	log.Printf("Waiting for connection...")
-
-	shutdown := initProvider()
-	defer shutdown()
-
-	tracer := otel.Tracer("test-tracer")
-	meter := otel.Meter("test-meter")
-
-	commonLabels := []label.KeyValue{
-		label.String("labelA", "chocolate"),
-		label.String("labelB", "raspberry"),
-		label.String("labelC", "vanilla"),
-	}
-
-	// Recorder metric example
-	valuerecorder := metric.Must(meter).
-		NewFloat64Counter(
-			"an_important_metric",
-			metric.WithDescription("Measures the cumulative epicness of the app"),
-		).Bind(commonLabels...)
-	defer valuerecorder.Unbind()
-
-	// Create new router to handle API endpoints
-	router := mux.NewRouter()
-
-	// Default endpoint is healthcheck
-	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode("healthcheck")
-	}).Methods(http.MethodGet)
-
-	// HTTP GET: /aws-sdk-call endpoint
-	router.HandleFunc("/aws-sdk-call", func(w http.ResponseWriter, r *http.Request) {
-
-		w.Header().Set("Content-Type", "application/json")
-
-		sess, err := session.NewSession(&aws.Config{
-			Region: aws.String("us-west-2")},
-		)
-		// Create S3 service client
-		svc := s3.New(sess)
-		svc.ListBuckets(nil)
-		if err != nil {
-			exitErrorf("Unable to list buckets, %v", err)
-		}
-
-		_, span := tracer.Start(
-			context.Background(),
-			"Example Trace",
-			trace.WithAttributes(commonLabels...))
-		defer span.End()
-
-		xrayTraceID := getXrayTraceID(span)
-		json := simplejson.New()
-		json.Set("traceId", xrayTraceID)
-		payload, _ := json.MarshalJSON()
-
-		w.Write(payload)
-
-	}).Methods(http.MethodGet)
-
-	// HTTP GET: /outgoing-http-call endpoint
-	router.HandleFunc("/outgoing-http-call", func(w http.ResponseWriter, r *http.Request) {
-
-		w.Header().Set("Content-Type", "application/json")
-
-		response, err := http.Get("https://aws.amazon.com/")
-		if err != nil || response.StatusCode != http.StatusOK {
-			fmt.Println("HTTP call failed:", err)
-			return
-		}
-
-		ctx, span := tracer.Start(
-			context.Background(),
-			"Example Trace",
-			trace.WithAttributes(commonLabels...))
-		defer span.End()
-		valuerecorder.Add(ctx, 1.0)
-
-		xrayTraceID := getXrayTraceID(span)
-		json := simplejson.New()
-		json.Set("traceId", xrayTraceID)
-		payload, _ := json.MarshalJSON()
-
-		w.Write(payload)
-
-	}).Methods(http.MethodGet)
-
-	// Start server
-	address := os.Getenv("LISTEN_ADDRESS")
-	if len(address) > 0 {
-		http.ListenAndServe(fmt.Sprintf(":%s", address), router)
-	} else {
-		// Default port 8000
-		http.ListenAndServe(":8000", router)
-	}
+	return tp
 }
 
 func getXrayTraceID(span trace.Span) string {
@@ -189,9 +174,4 @@ func handleErr(err error, message string) {
 	if err != nil {
 		log.Fatalf("%s: %v", message, err)
 	}
-}
-
-func exitErrorf(msg string, args ...interface{}) {
-	fmt.Fprintf(os.Stderr, msg+"\n", args...)
-	os.Exit(1)
 }
