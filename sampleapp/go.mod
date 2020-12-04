@@ -17,6 +17,7 @@ require (
 	go.opencensus.io v0.22.5
 	go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-sdk-go v0.0.0-00010101000000-000000000000
 	go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux v0.14.0
+	go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace v0.14.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.14.0
 	go.opentelemetry.io/contrib/propagators v0.14.0
 	go.opentelemetry.io/otel v0.14.0

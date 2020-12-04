@@ -17,6 +17,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -24,47 +25,35 @@ import (
 
 	"github.com/bitly/go-simplejson"
 	"github.com/gorilla/mux"
-	obsvsS3 "go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-sdk-go/service/s3/otels3"
-	mocks "go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-sdk-go/service/s3/otels3/mocks"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/contrib/propagators/aws/xray/xrayidgenerator"
 	awspropagator "go.opentelemetry.io/contrib/propagators/awsxray"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp"
-	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/sdk/metric/controller/push"
-	"go.opentelemetry.io/otel/sdk/metric/processor/basic"
-	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 )
 
-var tracer = otel.Tracer("mux-server")
-var meter = otel.Meter("test-meter")
+var tracer = otel.Tracer("sample-app")
 
 func main() {
 
-	tracerProvider := initProvider()
+	initTracer()
 
-	valuerecorder := metric.Must(meter).
-		NewFloat64Counter(
-			"an_important_metric",
-			metric.WithDescription("Measures the cumulative epicness of the app"),
-		)
+	// _, err := obsvsS3.NewInstrumentedS3Client(
+	// 	&mocks.MockS3Client{},
+	// 	obsvsS3.WithTracerProvider(tracerProvider),
+	// 	obsvsS3.WithSpanCorrelation(true),
+	// )
+	// handleErr(err, "failed to create new S3 Client")
 
-	_, err := obsvsS3.NewInstrumentedS3Client(
-		&mocks.MockS3Client{},
-		obsvsS3.WithTracerProvider(tracerProvider),
-		obsvsS3.WithSpanCorrelation(true),
-	)
-	handleErr(err, "failed to create new S3 Client")
-
-	tracer := tracerProvider.Tracer("http-tracer")
-	outerSpanCtx, span := tracer.Start(
-		context.Background(),
-		"http_request_served",
-	)
-	defer span.End()
+	// tracer := tracerProvider.Tracer("http-tracer")
+	// ctx, span := tracer.Start(
+	// 	context.Background(),
+	// 	"http_request_served",
+	// )
+	// defer span.End()
 
 	r := mux.NewRouter()
 	r.Use(otelmux.Middleware("my-server"))
@@ -72,6 +61,7 @@ func main() {
 	r.HandleFunc("/aws-sdk-call", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
+		ctx := r.Context()
 
 		// _, _ = client.PutObjectWithContext(outerSpanCtx, &s3.PutObjectInput{
 		// 	Bucket: aws.String("test-bucket"),
@@ -81,7 +71,7 @@ func main() {
 
 		// time.Sleep(time.Second * 15)
 
-		xrayTraceID := getXrayTraceID(span)
+		xrayTraceID := getXrayTraceID(trace.SpanFromContext(ctx))
 		json := simplejson.New()
 		json.Set("traceId", xrayTraceID)
 		payload, _ := json.MarshalJSON()
@@ -94,15 +84,31 @@ func main() {
 
 		w.Header().Set("Content-Type", "application/json")
 
-		// response, err := http.Get("https://aws.amazon.com/")
-		http.Get("https://aws.amazon.com/")
-		// if err != nil || response.StatusCode != http.StatusOK {
-		// 	handleErr(err, "HTTP call to aws.amazon.com failed")
-		// }
+		client := http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
+		ctx := r.Context()
 
-		valuerecorder.Add(outerSpanCtx, 1.0)
+		xrayTraceID, _ := func(ctx context.Context) (string, error) {
+			// ctx, span := tracer.Start(ctx, "HTTP GET Request")
+			// defer span.End()
 
-		xrayTraceID := getXrayTraceID(span)
+			// ctx = httptrace.WithClientTrace(ctx, otelhttptrace.NewClientTrace(ctx))
+			req, _ := http.NewRequestWithContext(ctx, "GET", "https://aws.amazon.com/", nil)
+
+			res, err := client.Do(req)
+			if err != nil {
+				handleErr(err, "HTTP call to aws.amazon.com failed")
+			}
+
+			ioutil.ReadAll(res.Body)
+			_ = res.Body.Close()
+
+			return getXrayTraceID(trace.SpanFromContext(ctx)), err
+
+		}(ctx)
+
+		time.Sleep(10 * time.Second)
+
+		// xrayTraceID := getXrayTraceID(span)
 		json := simplejson.New()
 		json.Set("traceId", xrayTraceID)
 		payload, _ := json.MarshalJSON()
@@ -123,7 +129,7 @@ func main() {
 	}
 }
 
-func initProvider() *sdktrace.TracerProvider {
+func initTracer() {
 
 	// Create new OTLP Exporter
 	exporter, err := otlp.NewExporter(
@@ -136,32 +142,16 @@ func initProvider() *sdktrace.TracerProvider {
 	cfg := sdktrace.Config{
 		DefaultSampler: sdktrace.AlwaysSample(),
 	}
-	// bsp := sdktrace.NewBatchSpanProcessor(exporter)
-	ssp := sdktrace.NewSimpleSpanProcessor(exporter)
 	idg := xrayidgenerator.NewIDGenerator()
 
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithConfig(cfg),
 		sdktrace.WithSyncer(exporter),
-		sdktrace.WithSpanProcessor(ssp),
 		sdktrace.WithIDGenerator(idg),
-	)
-
-	pusher := push.New(
-		basic.New(
-			simple.NewWithExactDistribution(),
-			exporter,
-		),
-		exporter,
-		push.WithPeriod(2*time.Second),
 	)
 
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(awspropagator.Xray{})
-	otel.SetMeterProvider(pusher.MeterProvider())
-	pusher.Start()
-
-	return tp
 }
 
 func getXrayTraceID(span trace.Span) string {
