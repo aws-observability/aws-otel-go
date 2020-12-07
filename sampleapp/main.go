@@ -16,12 +16,12 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/bitly/go-simplejson"
 	"github.com/gorilla/mux"
@@ -80,6 +80,8 @@ func main() {
 
 	}))
 
+	r.HandleFunc("/hello-world", handler).Methods(http.MethodGet)
+
 	r.HandleFunc("/outgoing-http-call", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
@@ -92,7 +94,7 @@ func main() {
 			// defer span.End()
 
 			// ctx = httptrace.WithClientTrace(ctx, otelhttptrace.NewClientTrace(ctx))
-			req, _ := http.NewRequestWithContext(ctx, "GET", "https://aws.amazon.com/", nil)
+			req, _ := http.NewRequestWithContext(ctx, "GET", "https://aws.amazon.com", nil)
 
 			res, err := client.Do(req)
 			if err != nil {
@@ -106,7 +108,7 @@ func main() {
 
 		}(ctx)
 
-		time.Sleep(10 * time.Second)
+		// time.Sleep(10 * time.Second)
 
 		// xrayTraceID := getXrayTraceID(span)
 		json := simplejson.New()
@@ -122,11 +124,20 @@ func main() {
 	// Start server
 	address := os.Getenv("LISTEN_ADDRESS")
 	if len(address) > 0 {
-		http.ListenAndServe(fmt.Sprintf(":%s", address), nil)
+		http.ListenAndServe(fmt.Sprintf("%s:8080", address), nil)
 	} else {
 		// Default port 8000
-		http.ListenAndServe(":8080", nil)
+		http.ListenAndServe("localhost:8080", nil)
 	}
+}
+
+// Function for handling the /hello-world endpoint
+func handler(w http.ResponseWriter, r *http.Request) {
+
+	// Set the header content-type and return hello world
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode("hello world")
+
 }
 
 func initTracer() {
@@ -134,7 +145,7 @@ func initTracer() {
 	// Create new OTLP Exporter
 	exporter, err := otlp.NewExporter(
 		otlp.WithInsecure(),
-		otlp.WithAddress("localhost:30080"),
+		otlp.WithAddress("localhost:55680"),
 		// otlp.WithGRPCDialOption(grpc.WithBlock()),
 	)
 	handleErr(err, "failed to create new OTLP exporter")
