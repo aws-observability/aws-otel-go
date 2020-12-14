@@ -36,7 +36,7 @@ jobs:
           
   run_app_with_test_framework:
     runs-on: ubuntu-latest
-    needs: [build_and_publish_app]
+    needs: [build]
     steps:
       - name: Setup and Run Otel collector
         run: |
