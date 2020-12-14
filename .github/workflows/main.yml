@@ -66,3 +66,4 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.INTEG_TEST_AWS_KEY_SECRET }}
           AWS_REGION: us-west-2
         working-directory: test-framework
+        
