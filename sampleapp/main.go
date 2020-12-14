@@ -134,7 +134,6 @@ func initProvider() {
 	ctx := context.Background()
 
 	endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
-
 	// Create new OTLP Exporter
 	exporter, err := otlp.NewExporter(
 		ctx,
