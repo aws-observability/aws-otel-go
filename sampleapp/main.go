@@ -122,7 +122,7 @@ func main() {
 	// Start server
 	address := os.Getenv("LISTEN_ADDRESS")
 	if len(address) > 0 {
-		http.ListenAndServe(fmt.Sprintf("%s:8080", address), nil)
+		http.ListenAndServe(address, nil)
 	} else {
 		// Default port 8000
 		http.ListenAndServe("localhost:8080", nil)
