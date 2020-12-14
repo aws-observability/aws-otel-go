@@ -24,27 +24,19 @@ jobs:
           aws-access-key-id: ${{ secrets.INTEG_TEST_AWS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.INTEG_TEST_AWS_KEY_SECRET }}
           aws-region: us-west-2
-      - name: Login to ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-      - name: Build app docker image and push to ECR
-        uses: docker/build-push-action@v2
-        with:
-          file: ../sample-apps/Dockerfile
-          context: .
-          tags: ${{ steps.login-ecr.outputs.registry }}/otel-test/http-go-sample-app:${{ github.sha }}
-          push: true
-          
-  run_app_with_test_framework:
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
+      - name: Build image
+        run : docker build --tag "169804678496.dkr.ecr.us-west-2.amazonaws.com/amazon/aws-otel-go-sample-app:${{ github.sha }}" --file sampleapp/Dockerfile .
+      - name: Push to ECR
+        run : docker push "169804678496.dkr.ecr.us-west-2.amazonaws.com/amazon/aws-otel-js-sample-app:${{ github.sha }}"
       - name: Setup and Run Otel collector
         run: |
           docker-compose -f .github/collector/docker-compose.yml up &
         env:
           ACCESS_KEY: ${{ secrets.INTEG_TEST_AWS_KEY_ID }}
           SECRET_ACCESS_KEY: ${{ secrets.INTEG_TEST_AWS_KEY_SECRET }}
-
       - name: Run Http App with Instrumentation
         run: |
           docker run -e AWS_ACCESS_KEY_ID=${{ secrets.INTEG_TEST_AWS_KEY_ID }} \
@@ -53,19 +45,23 @@ jobs:
                      -e INSTANCE_ID=${{ github.run_id }}-${{ github.run_number }} \
                      -e LISTEN_ADDRESS=0.0.0.0:8080 \
                      -e OTEL_EXPORTER_OTLP_ENDPOINT=172.17.0.1:55680 \
+                     -e OTEL_RESOURCE_ATTRIBUTES="aws-otel-integ-test" \
                      -e OTEL_EXPORTER_OTLP_INSECURE=True \
-                     -p 8080:8080 ${{ steps.login-ecr.outputs.registry }}/otel-test/http-go-sample-app:${{ github.sha }} &
-      
+                     -p 8080:8080 169804678496.dkr.ecr.us-west-2.amazonaws.com/amazon/aws-otel-js-sample-app:${{ github.sha }} &
+
+      - name: Directory to checkout test framework
+        run: mkdir test-framework 
+
       - name: Checkout test framework
         uses: actions/checkout@v2
         with:
           repository: aws-observability/aws-otel-test-framework
           ref: terraform
           path: test-framework
-
-       - name: Run testing suite
-         run: ./gradlew :validator:run --args='-c temporary-otel-go-trace-metric-validation.yml --endpoint http://127.0.0.1:8080 --metric-namespace -t ${{ github.run_id }}-${{ github.run_number }}'
-         env:
+      
+      - name: Run testing suite
+        run: ./gradlew :validator:run --args='-c go-otel-trace-validation.yml --endpoint http://127.0.0.1:8080 --metric-namespace aws-otel-integ-test -t ${{ github.run_id }}-${{ github.run_number }}'
+        env:
           AWS_ACCESS_KEY_ID: ${{ secrets.INTEG_TEST_AWS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.INTEG_TEST_AWS_KEY_SECRET }}
           AWS_REGION: us-west-2
