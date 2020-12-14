@@ -30,7 +30,7 @@ jobs:
       - name: Build image
         run : docker build --tag "169804678496.dkr.ecr.us-west-2.amazonaws.com/amazon/aws-otel-go-sample-app:${{ github.sha }}" --file sampleapp/Dockerfile .
       - name: Push to ECR
-        run : docker push "169804678496.dkr.ecr.us-west-2.amazonaws.com/amazon/aws-otel-js-sample-app:${{ github.sha }}"
+        run : docker push "169804678496.dkr.ecr.us-west-2.amazonaws.com/amazon/aws-otel-go-sample-app:${{ github.sha }}"
       - name: Setup and Run Otel collector
         run: |
           docker-compose -f .github/collector/docker-compose.yml up &
@@ -47,7 +47,7 @@ jobs:
                      -e OTEL_EXPORTER_OTLP_ENDPOINT=172.17.0.1:55680 \
                      -e OTEL_RESOURCE_ATTRIBUTES="aws-otel-integ-test" \
                      -e OTEL_EXPORTER_OTLP_INSECURE=True \
-                     -p 8080:8080 169804678496.dkr.ecr.us-west-2.amazonaws.com/amazon/aws-otel-js-sample-app:${{ github.sha }} &
+                     -p 8080:8080 169804678496.dkr.ecr.us-west-2.amazonaws.com/amazon/aws-otel-go-sample-app:${{ github.sha }} &
 
       - name: Directory to checkout test framework
         run: mkdir test-framework 
