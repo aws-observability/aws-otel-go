@@ -10,3 +10,4 @@ services:
       AWS_SECRET_ACCESS_KEY: ${INTEG_TEST_AWS_KEY_SECRET}
     ports:
       - '55680:55680'
+      - '30080:30080'
