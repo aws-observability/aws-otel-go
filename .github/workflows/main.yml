@@ -41,7 +41,7 @@ jobs:
                      -e AWS_REGION=us-west-2 \
                      -e INSTANCE_ID=${{ github.run_id }}-${{ github.run_number }} \
                      -e LISTEN_ADDRESS=0.0.0.0:8080 \
-                     -e OTEL_EXPORTER_OTLP_ENDPOINT=172.17.0.1:30080 \
+                     -e OTEL_EXPORTER_OTLP_ENDPOINT=172.17.0.1:55680 \
                      -e OTEL_RESOURCE_ATTRIBUTES="aws-otel-integ-test" \
                      -e OTEL_EXPORTER_OTLP_INSECURE=True \
                      -p 8080:8080 169804678496.dkr.ecr.us-west-2.amazonaws.com/amazon/aws-otel-go-sample-app:${{ github.sha }} &
