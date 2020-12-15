@@ -2,7 +2,7 @@
 
 ## Introduction
 
-AWS Distro for OpenTelemetry Go (ADOT Go) is a distribution of [OpenTelemetry Go](http://]%28https//github.com/open-telemetry/opentelemetry-go), configured to trace applications in a format compatible with the AWS X-Ray service. This way, all the features of the OpenTelemetry project are available, but its components are configured to create traces which can be viewed in the AWS X-Ray console and are configured to allow propagation of those contexts across multiple downstream AWS services.
+AWS Distro for OpenTelemetry Go SDK (ADOT Go SDK) is a distribution of [OpenTelemetry Go](http://]%28https//github.com/open-telemetry/opentelemetry-go) SDK, configured to trace applications in a format compatible with the AWS X-Ray service. This way, all the features of the OpenTelemetry project are available, but its components are configured to create traces which can be viewed in the AWS X-Ray console and are configured to allow propagation of those contexts across multiple downstream AWS services.
 
 Once traces have been generated, they can be sent to a tracing service, like AWS X-Ray, to visualize and understand exactly what happened during the traced calls. For more information about the AWS X-Ray service, see the [AWS X-Ray Developer Guide](https://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html). 
 
@@ -16,7 +16,7 @@ Check out the getting started [documentation](https://aws-otel.github.io/docs/ge
 
 See the [example sample application](https://github.com/aws-observability/aws-otel-go/blob/master/sampleapp/main.go) for setup steps.
 
-[OpenTelemetry Go](https://github.com/open-telemetry/opentelemetry-go) provides entry points for configuration through its API. This is can be used to configure the [id_generator](https://github.com/open-telemetry/opentelemetry-go/blob/970755bd087801619575b7473806356818e24e15/sdk/trace/id_generator.go) needed to support the X-Ray trace ID format. In addition, it also allows the use of a custom propagator, passed into the tracer provider, to generate and propagate the AWS X-Ray trace header. 
+The [OpenTelemetry Go](https://github.com/open-telemetry/opentelemetry-go) SDK provides entry points for configuration through its API. This is can be used to configure the [id_generator](https://github.com/open-telemetry/opentelemetry-go/blob/970755bd087801619575b7473806356818e24e15/sdk/trace/id_generator.go) needed to support the X-Ray trace ID format. In addition, it also allows the use of a custom propagator, passed into the tracer provider, to generate and propagate the AWS X-Ray trace header. 
 
 ## Useful Links
 
