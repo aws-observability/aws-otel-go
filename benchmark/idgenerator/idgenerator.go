@@ -1,12 +1,14 @@
 package idgenerator
 
 import (
-	"go.opentelemetry.io/contrib/propagators/aws/xray/xrayidgenerator"
+	"context"
+	
+	"go.opentelemetry.io/contrib/propagators/aws/xray"
 	"go.opentelemetry.io/otel/trace"
 )
 
 func generateNewTraceID() trace.TraceID {
-	idg := xrayidgenerator.NewIDGenerator()
-	traceID := idg.NewTraceID()
+	idg := xray.NewIDGenerator()
+	traceID, _ := idg.NewIDs(context.Background())
 	return traceID
 }
