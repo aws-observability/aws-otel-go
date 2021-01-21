@@ -38,6 +38,8 @@ import (
 	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
 	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
 	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
+	"go.opentelemetry.io/otel/sdk/resource"
+	"go.opentelemetry.io/otel/semconv"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -151,8 +153,21 @@ func initProvider() {
 	}
 	idg := xray.NewIDGenerator()
 
+	service := os.Getenv("GO_GORILLA_SERVICE_NAME")
+	if service == "" {
+		service = "go-gorilla"
+	}
+	res, err := resource.New(ctx,
+		resource.WithAttributes(
+			// the service name used to display traces in backends
+			semconv.ServiceNameKey.String("test-service"),
+		),
+	)
+	handleErr(err, "failed to create resource")
+
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithConfig(cfg),
+		sdktrace.WithResource(res),
 		sdktrace.WithSyncer(exporter),
 		sdktrace.WithIDGenerator(idg),
 	)
