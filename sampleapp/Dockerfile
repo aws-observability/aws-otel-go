@@ -4,6 +4,6 @@ WORKDIR /usr/src/app
 
 COPY . .
 
-RUN cd sampleapp && go build
+RUN go build
 
-CMD ["sampleapp/./sampleapp"]
+CMD ["./sampleapp"]
