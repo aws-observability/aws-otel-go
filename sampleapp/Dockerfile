@@ -10,7 +10,6 @@ RUN CGO_ENABLED=0 go build -a -ldflags '-extldflags "-static"'
 
 FROM scratch
 COPY --from=build-env /usr/src/app/sampleapp /sampleapp
-COPY --from=build-env /etc/passwd /etc/passwd
 COPY --from=build-env /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 CMD ["/sampleapp"]
