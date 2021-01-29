@@ -1,9 +1,15 @@
-FROM golang:1.15
+FROM golang:1.15-alpine AS build-env
+
+RUN apk update && apk add ca-certificates
 
 WORKDIR /usr/src/app
 
 COPY . .
 
-RUN cd sampleapp && go build
+RUN CGO_ENABLED=0 go build -a -ldflags '-extldflags "-static"'
 
-CMD ["sampleapp/./sampleapp"]
+FROM scratch
+COPY --from=build-env /usr/src/app/sampleapp /sampleapp
+COPY --from=build-env /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
+CMD ["/sampleapp"]
