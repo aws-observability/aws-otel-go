@@ -108,7 +108,7 @@ func main() {
 		}(ctx)
 
 		ctx, span := tracer.Start(
-			context.Background(),
+			ctx,
 			"CollectorExporter-Example",
 			trace.WithAttributes(commonLabels...))
 		defer span.End()
