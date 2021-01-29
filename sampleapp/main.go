@@ -23,19 +23,24 @@ import (
 	"os"
 	"time"
 
-	"github.com/bitly/go-simplejson"
+	"google.golang.org/grpc"
+
+	simplejson "github.com/bitly/go-simplejson"
 	"github.com/gorilla/mux"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/contrib/propagators/aws/xray"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
 	"go.opentelemetry.io/otel/label"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/sdk/metric/controller/push"
-	"go.opentelemetry.io/otel/sdk/metric/processor/basic"
+	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
+	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
 	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
+	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/semconv"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -103,7 +108,7 @@ func main() {
 		}(ctx)
 
 		ctx, span := tracer.Start(
-			context.Background(),
+			ctx,
 			"CollectorExporter-Example",
 			trace.WithAttributes(commonLabels...))
 		defer span.End()
@@ -135,11 +140,12 @@ func initProvider() {
 
 	endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 	// Create new OTLP Exporter
-	exporter, err := otlp.NewExporter(
-		ctx,
-		otlp.WithInsecure(),
-		otlp.WithAddress(endpoint),
+	driver := otlpgrpc.NewDriver(
+		otlpgrpc.WithInsecure(),
+		otlpgrpc.WithEndpoint(endpoint),
+		otlpgrpc.WithDialOption(grpc.WithBlock()), // useful for testing
 	)
+	exporter, err := otlp.NewExporter(ctx, driver)
 	handleErr(err, "failed to create new OTLP exporter")
 
 	cfg := sdktrace.Config{
@@ -147,25 +153,38 @@ func initProvider() {
 	}
 	idg := xray.NewIDGenerator()
 
+	service := os.Getenv("GO_GORILLA_SERVICE_NAME")
+	if service == "" {
+		service = "go-gorilla"
+	}
+	res, err := resource.New(ctx,
+		resource.WithAttributes(
+			// the service name used to display traces in backends
+			semconv.ServiceNameKey.String("test-service"),
+		),
+	)
+	handleErr(err, "failed to create resource")
+
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithConfig(cfg),
+		sdktrace.WithResource(res),
 		sdktrace.WithSyncer(exporter),
 		sdktrace.WithIDGenerator(idg),
 	)
 
-	pusher := push.New(
-		basic.New(
+	cont := controller.New(
+		processor.New(
 			simple.NewWithExactDistribution(),
 			exporter,
 		),
-		exporter,
-		push.WithPeriod(2*time.Second),
+		controller.WithPusher(exporter),
+		controller.WithCollectPeriod(2*time.Second),
 	)
 
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(xray.Propagator{})
-	otel.SetMeterProvider(pusher.MeterProvider())
-	pusher.Start()
+	otel.SetMeterProvider(cont.MeterProvider())
+	cont.Start(context.Background())
 }
 
 func getXrayTraceID(span trace.Span) string {
