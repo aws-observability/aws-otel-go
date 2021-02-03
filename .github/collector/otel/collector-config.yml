@@ -8,16 +8,9 @@ receivers:
         endpoint: 0.0.0.0:55680
       http:
         endpoint: 0.0.0.0:55681
-
-exporters:
-  logging:
-    loglevel: info
   awsxray:
-    region: us-west-2
-    local_mode: true
-    no_verify_ssl: true
-  awsemf:
-    region: us-west-2
+    endpoint: 0.0.0.0:2000
+    transport: udp
 
 processors:
   batch/traces:
@@ -26,13 +19,19 @@ processors:
   batch/metrics:
     timeout: 60s
 
+exporters:
+  awsxray:
+  awsemf:
+
 service:
   pipelines:
     traces:
-      receivers: [ otlp ]
-      processors: [ batch/traces ]
-      exporters: [ awsxray ]
+      receivers: [otlp]
+      processors: [batch/traces]
+      exporters: [awsxray]
     metrics:
-      receivers: [ otlp ]
-      processors: [ batch/metrics ]
-      exporters: [ awsemf ]
+      receivers: [otlp]
+      processors: [batch/metrics]
+      exporters: [awsemf]
+
+  extensions: [health_check]
