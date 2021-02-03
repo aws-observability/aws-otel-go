@@ -55,7 +55,7 @@ jobs:
         run: |
           docker run -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
                      -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
-                     -e AWS_REGION=us-east-1
+                     -e AWS_REGION=us-east-1 \
                      -e LISTEN_ADDRESS=0.0.0.0:8080 \
                      -e OTEL_EXPORTER_OTLP_ENDPOINT=172.17.0.1:55680 \
                      -e OTEL_EXPORTER_OTLP_INSECURE=True \
