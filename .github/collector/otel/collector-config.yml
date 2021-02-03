@@ -29,7 +29,7 @@ processors:
 service:
   pipelines:
     traces:
-      receivers: [ otlp,awsxray ]
+      receivers: [ otlp ]
       processors: [ batch/traces ]
       exporters: [ awsxray ]
     metrics:
