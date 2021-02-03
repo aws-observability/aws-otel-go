@@ -8,7 +8,7 @@ services:
     environment:
       AWS_ACCESS_KEY_ID: ${ACCESS_KEY}
       AWS_SECRET_ACCESS_KEY: ${SECRET_ACCESS_KEY}
-      AWS_REGION: us-west-2
+      AWS_REGION: us-east-1
     ports:
       - '55680:55680'
       - '30080:30080'
