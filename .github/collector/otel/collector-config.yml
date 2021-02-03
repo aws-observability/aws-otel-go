@@ -1,16 +1,8 @@
-extensions:
-  health_check:
-
 receivers:
   otlp:
     protocols:
       grpc:
         endpoint: 0.0.0.0:55680
-      http:
-        endpoint: 0.0.0.0:55681
-  awsxray:
-    endpoint: 0.0.0.0:2000
-    transport: udp
 
 processors:
   batch/traces:
@@ -21,7 +13,11 @@ processors:
 
 exporters:
   awsxray:
+    region: us-west-2
+    local_mode: true
+    no_verify_ssl: true
   awsemf:
+    region: us-west-2
 
 service:
   pipelines:
@@ -33,5 +29,3 @@ service:
       receivers: [otlp]
       processors: [batch/metrics]
       exporters: [awsemf]
-
-  extensions: [health_check]
