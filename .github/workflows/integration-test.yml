@@ -3,10 +3,11 @@ on:
   push:
     branches:
       - master
+      - fix-integration-test
 
 jobs:
   build:
-    name: Build Sample app docker image
+    name: Integration Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository

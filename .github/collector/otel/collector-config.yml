@@ -1,7 +1,13 @@
+extensions:
+  health_check:
+
 receivers:
   otlp:
     protocols:
       grpc:
+        endpoint: 0.0.0.0:55680
+      http:
+        endpoint: 0.0.0.0:55681
 
 exporters:
   logging:
@@ -14,25 +20,19 @@ exporters:
     region: us-west-2
 
 processors:
-  memory_limiter:
-    limit_mib: 100
-    check_interval: 5s
-  batch:
-  queued_retry:
+  batch/traces:
+    timeout: 1s
+    send_batch_size: 50
+  batch/metrics:
+    timeout: 60s
 
 service:
   pipelines:
     traces:
-      processors:
-        - memory_limiter
-      receivers:
-        - otlp
-      exporters:
-        # - logging
-        - awsxray
+      receivers: [ otlp,awsxray ]
+      processors: [ batch/traces ]
+      exporters: [ awsxray ]
     metrics:
-      receivers:
-        - otlp
-      exporters:
-        # - logging
-        - awsemf
+      receivers: [ otlp ]
+      processors: [ batch/metrics ]
+      exporters: [ awsemf ]
