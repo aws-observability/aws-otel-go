@@ -2,18 +2,19 @@ package propagator
 
 import (
 	"context"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
+	"google.golang.org/grpc"
 	"net/http"
 	"testing"
 
-	"go.opentelemetry.io/contrib/propagators/aws/xray/xrayidgenerator"
-	awspropagator "go.opentelemetry.io/contrib/propagators/awsxray"
+	"go.opentelemetry.io/contrib/propagators/aws/xray"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
 func BenchmarkPropagatorExtract(b *testing.B) {
-	propagator := awspropagator.Xray{}
+	propagator := xray.Propagator{}
 
 	ctx := context.Background()
 	req, _ := http.NewRequest("GET", "http://example.com", nil)
@@ -29,7 +30,7 @@ func BenchmarkPropagatorExtract(b *testing.B) {
 }
 
 func BenchmarkPropagatorInject(b *testing.B) {
-	propagator := awspropagator.Xray{}
+	propagator := xray.Propagator{}
 	initTracer()
 	tracer := otel.Tracer("test")
 
@@ -43,17 +44,19 @@ func BenchmarkPropagatorInject(b *testing.B) {
 }
 
 func initTracer() {
+	driver := otlpgrpc.NewDriver(
+		otlpgrpc.WithInsecure(),
+		otlpgrpc.WithEndpoint("0.0.0.0:55680"),
+		otlpgrpc.WithDialOption(grpc.WithBlock()), // useful for testing
+	)
 
 	// Create new OTLP Exporter
-	exporter, _ := otlp.NewExporter(
-		otlp.WithInsecure(),
-		otlp.WithAddress("localhost:55680"),
-	)
+	exporter, _ := otlp.NewExporter(context.Background(), driver)
 
 	cfg := sdktrace.Config{
 		DefaultSampler: sdktrace.AlwaysSample(),
 	}
-	idg := xrayidgenerator.NewIDGenerator()
+	idg := xray.NewIDGenerator()
 
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithConfig(cfg),
@@ -62,5 +65,5 @@ func initTracer() {
 	)
 
 	otel.SetTracerProvider(tp)
-	otel.SetTextMapPropagator(awspropagator.Xray{})
+	otel.SetTextMapPropagator(xray.Propagator{})
 }

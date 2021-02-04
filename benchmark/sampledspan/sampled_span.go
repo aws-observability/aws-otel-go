@@ -3,8 +3,7 @@ package sampledspan
 import (
 	"context"
 
-	"go.opentelemetry.io/contrib/propagators/aws/xray/xrayidgenerator"
-	awspropagator "go.opentelemetry.io/contrib/propagators/awsxray"
+	"go.opentelemetry.io/contrib/propagators/aws/xray"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/label"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -68,7 +67,7 @@ func initTracer() {
 	cfg := sdktrace.Config{
 		DefaultSampler: sdktrace.AlwaysSample(),
 	}
-	idg := xrayidgenerator.NewIDGenerator()
+	idg := xray.NewIDGenerator()
 
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithConfig(cfg),
@@ -76,5 +75,5 @@ func initTracer() {
 	)
 
 	otel.SetTracerProvider(tp)
-	otel.SetTextMapPropagator(awspropagator.Xray{})
+	otel.SetTextMapPropagator(xray.Propagator{})
 }
