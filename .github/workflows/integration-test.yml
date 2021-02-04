@@ -48,13 +48,13 @@ jobs:
         run: |
           docker-compose -f .github/collector/docker-compose.yml up &
         env:
-          ACCESS_KEY: ${{ secrets.TEST_ACCESS_KEY }}
-          SECRET_ACCESS_KEY: ${{ secrets.TEST_SECRET_ACCESS_KEY }}
+          ACCESS_KEY: ${{ secrets.INTEG_TEST_AWS_KEY_ID }}
+          SECRET_ACCESS_KEY: ${{ secrets.INTEG_TEST_AWS_KEY_SECRET }}
       
       - name: Run Sample App
         run: |
-          docker run -e AWS_ACCESS_KEY_ID=${{ secrets.TEST_ACCESS_KEY }} \
-                     -e AWS_SECRET_ACCESS_KEY=${{ secrets.TEST_SECRET_ACCESS_KEY }} \
+          docker run -e AWS_ACCESS_KEY_ID=${{ secrets.INTEG_TEST_AWS_KEY_ID }} \
+                     -e AWS_SECRET_ACCESS_KEY=${{ secrets.INTEG_TEST_AWS_KEY_SECRET }} \
                      -e AWS_REGION=us-west-2 \
                      -e LISTEN_ADDRESS=0.0.0.0:8080 \
                      -e OTEL_EXPORTER_OTLP_ENDPOINT=172.17.0.1:55680 \
@@ -74,7 +74,7 @@ jobs:
       - name: Run testing suite
         run: ./gradlew :validator:run --args='-c go-otel-trace-validation.yml --endpoint http://127.0.0.1:8080'
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.TEST_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.TEST_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.INTEG_TEST_AWS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.INTEG_TEST_AWS_KEY_SECRET }}
           AWS_REGION: us-west-2
         working-directory: test-framework
