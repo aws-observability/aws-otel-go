@@ -10,4 +10,3 @@ services:
       AWS_SECRET_ACCESS_KEY: ${SECRET_ACCESS_KEY}
     ports:
       - '55680:55680'
-      - '9464:9464'
