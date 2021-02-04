@@ -2,10 +2,16 @@ receivers:
   otlp:
     protocols:
       grpc:
+        endpoint: 0.0.0.0:55680
+
+processors:
+  batch/traces:
+    timeout: 1s
+    send_batch_size: 50
+  batch/metrics:
+    timeout: 60s
 
 exporters:
-  logging:
-    loglevel: info
   awsxray:
     region: us-west-2
     local_mode: true
@@ -13,26 +19,13 @@ exporters:
   awsemf:
     region: us-west-2
 
-processors:
-  memory_limiter:
-    limit_mib: 100
-    check_interval: 5s
-  batch:
-  queued_retry:
-
 service:
   pipelines:
     traces:
-      processors:
-        - memory_limiter
-      receivers:
-        - otlp
-      exporters:
-        # - logging
-        - awsxray
+      receivers: [otlp]
+      processors: [batch/traces]
+      exporters: [awsxray]
     metrics:
-      receivers:
-        - otlp
-      exporters:
-        # - logging
-        - awsemf
+      receivers: [otlp]
+      processors: [batch/metrics]
+      exporters: [awsemf]

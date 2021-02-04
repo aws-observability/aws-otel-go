@@ -1,7 +1,7 @@
 version: "3.2"
 services:
   otel:
-    image: amazon/aws-otel-collector:latest
+    image: public.ecr.aws/aws-observability/aws-otel-collector:latest
     command: --config /config/collector-config.yml --log-level debug
     volumes:
       - ./otel:/config
@@ -10,4 +10,3 @@ services:
       AWS_SECRET_ACCESS_KEY: ${SECRET_ACCESS_KEY}
     ports:
       - '55680:55680'
-      - '30080:30080'

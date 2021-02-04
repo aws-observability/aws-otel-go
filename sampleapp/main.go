@@ -80,7 +80,7 @@ func main() {
 		json.Set("traceId", xrayTraceID)
 		payload, _ := json.MarshalJSON()
 
-		w.Write(payload)
+		_, _ = w.Write(payload)
 
 	}))
 
@@ -100,7 +100,7 @@ func main() {
 				handleErr(err, "HTTP call to aws.amazon.com failed")
 			}
 
-			ioutil.ReadAll(res.Body)
+			_, _ = ioutil.ReadAll(res.Body)
 			_ = res.Body.Close()
 
 			return getXrayTraceID(trace.SpanFromContext(ctx)), err
@@ -118,7 +118,7 @@ func main() {
 		json.Set("traceId", xrayTraceID)
 		payload, _ := json.MarshalJSON()
 
-		w.Write(payload)
+		_, _ = w.Write(payload)
 
 	}))
 
@@ -127,10 +127,10 @@ func main() {
 	// Start server
 	address := os.Getenv("LISTEN_ADDRESS")
 	if len(address) > 0 {
-		http.ListenAndServe(fmt.Sprintf("%s", address), nil)
+		_ = http.ListenAndServe(fmt.Sprintf("%s", address), nil)
 	} else {
-		// Default port 8000
-		http.ListenAndServe("localhost:8080", nil)
+		// Default port 8080
+		_ = http.ListenAndServe("localhost:8080", nil)
 	}
 }
 
@@ -139,6 +139,10 @@ func initProvider() {
 	ctx := context.Background()
 
 	endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+	if endpoint == "" {
+		endpoint = "0.0.0.0:55680" // setting default endpoint for exporter
+	}
+
 	// Create new OTLP Exporter
 	driver := otlpgrpc.NewDriver(
 		otlpgrpc.WithInsecure(),
@@ -184,7 +188,7 @@ func initProvider() {
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(xray.Propagator{})
 	otel.SetMeterProvider(cont.MeterProvider())
-	cont.Start(context.Background())
+	_ = cont.Start(ctx)
 }
 
 func getXrayTraceID(span trace.Span) string {
