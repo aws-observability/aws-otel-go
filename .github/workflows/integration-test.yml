@@ -58,7 +58,7 @@ jobs:
                      -e LISTEN_ADDRESS=0.0.0.0:8080 \
                      -e OTEL_EXPORTER_OTLP_ENDPOINT=172.17.0.1:55680 \
                      -e OTEL_EXPORTER_OTLP_INSECURE=True \
-                     -p 8080:8080 public.ecr.aws/u0d6r4y4/aws-otel-go-test-gorilla:6a353a2db7927644092ebe17c4fe33ae0fb7001c &
+                     -p 8080:8080 public.ecr.aws/u0d6r4y4/aws-otel-go-test-gorilla:${{ github.sha }} &
 
       - name: Directory to checkout test framework
         run: mkdir test-framework 
