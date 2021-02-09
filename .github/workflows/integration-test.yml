@@ -52,4 +52,4 @@ jobs:
           INSTANCE_ID: ${{ github.run_id }}-${{ github.run_number }}
           LISTEN_ADDRESS: 0.0.0.0:8080
           APP_IMAGE: public.ecr.aws/u0d6r4y4/aws-otel-go-test-gorilla:${{ github.sha }}
-          VALIDATOR_COMMAND: -c go-otel-trace-validation.yml --endpoint http://127.0.0.1:8080 -t ${{ github.run_id }}-${{ github.run_number }}
+          VALIDATOR_COMMAND: -c go-otel-trace-validation.yml --endpoint http://app:8080 -t ${{ github.run_id }}-${{ github.run_number }}
