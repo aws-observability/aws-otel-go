@@ -1,12 +1,36 @@
-version: "3.2"
+version: "3.7"
 services:
   otel:
     image: public.ecr.aws/aws-observability/aws-otel-collector:latest
     command: --config /config/collector-config.yml --log-level debug
     volumes:
-      - ./otel:/config
+      - .:/config
     environment:
-      AWS_ACCESS_KEY_ID: ${ACCESS_KEY}
-      AWS_SECRET_ACCESS_KEY: ${SECRET_ACCESS_KEY}
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
     ports:
-      - '55680:55680'
+      - '4317:4317'
+
+  app:
+    image: ${APP_IMAGE}
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_REGION=us-west-2
+      - INSTANCE_ID
+      - LISTEN_ADDRESS
+      - OTEL_EXPORTER_OTLP_INSECURE=True
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel:4317
+    ports:
+      - '8080:8080'
+
+  validator:
+    image: public.ecr.aws/u0d6r4y4/aws-otel-test-validator:alpha
+    command: ${VALIDATOR_COMMAND}
+    depends_on:
+      - otel
+      - app
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_REGION=us-west-2
