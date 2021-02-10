@@ -19,7 +19,7 @@ services:
       - AWS_REGION=us-west-2
       - LISTEN_ADDRESS
       - OTEL_EXPORTER_OTLP_INSECURE=True
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel:4317
+      - OTEL_EXPORTER_OTLP_ENDPOINT=otel:4317
     ports:
       - '8080:8080'
 
