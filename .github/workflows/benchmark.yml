@@ -19,5 +19,6 @@ jobs:
         run: |
           echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
       - name: Run Benchmark
         run: cd benchmark && go test -v -benchmem -run=^$$ -bench=. ./...
