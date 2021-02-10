@@ -43,37 +43,12 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 
-      - name: Setup and Run Otel collector
-        run: |
-          docker-compose -f .github/collector/docker-compose.yml up &
-        env:
-          ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: Run Sample App
-        run: |
-          docker run -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
-                     -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
-                     -e AWS_REGION=us-west-2 \
-                     -e LISTEN_ADDRESS=0.0.0.0:8080 \
-                     -e OTEL_EXPORTER_OTLP_ENDPOINT=172.17.0.1:55680 \
-                     -e OTEL_EXPORTER_OTLP_INSECURE=True \
-                     -p 8080:8080 public.ecr.aws/u0d6r4y4/aws-otel-go-test-gorilla:${{ github.sha }} &
-
-      - name: Directory to checkout test framework
-        run: mkdir test-framework
-
-      - name: Checkout test framework
-        uses: actions/checkout@v2
-        with:
-          repository: aws-observability/aws-otel-test-framework
-          ref: terraform
-          path: test-framework
-
-      - name: Run testing suite
-        run: ./gradlew :validator:run --args='-c go-otel-trace-validation.yml --endpoint http://127.0.0.1:8080 -t ${{ github.run_id }}-${{ github.run_number }}'
+      - name: Run test containers
+        run: docker-compose up --abort-on-container-exit
+        working-directory: .github/collector
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-west-2
-        working-directory: test-framework
+          LISTEN_ADDRESS: 0.0.0.0:8080
+          APP_IMAGE: public.ecr.aws/u0d6r4y4/aws-otel-go-test-gorilla:${{ github.sha }}
+          VALIDATOR_COMMAND: -c go-otel-trace-validation.yml --endpoint http://app:8080 -t ${{ github.run_id }}-${{ github.run_number }}
