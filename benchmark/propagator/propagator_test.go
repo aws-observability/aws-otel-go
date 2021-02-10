@@ -2,15 +2,11 @@ package propagator
 
 import (
 	"context"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
-	"google.golang.org/grpc"
 	"net/http"
 	"testing"
 
 	"go.opentelemetry.io/contrib/propagators/aws/xray"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
 func BenchmarkPropagatorExtract(b *testing.B) {
@@ -31,7 +27,6 @@ func BenchmarkPropagatorExtract(b *testing.B) {
 
 func BenchmarkPropagatorInject(b *testing.B) {
 	propagator := xray.Propagator{}
-	initTracer()
 	tracer := otel.Tracer("test")
 
 	req, _ := http.NewRequest("GET", "http://example.com", nil)
@@ -43,27 +38,3 @@ func BenchmarkPropagatorInject(b *testing.B) {
 	}
 }
 
-func initTracer() {
-	driver := otlpgrpc.NewDriver(
-		otlpgrpc.WithInsecure(),
-		otlpgrpc.WithEndpoint("0.0.0.0:55680"),
-		otlpgrpc.WithDialOption(grpc.WithBlock()), // useful for testing
-	)
-
-	// Create new OTLP Exporter
-	exporter, _ := otlp.NewExporter(context.Background(), driver)
-
-	cfg := sdktrace.Config{
-		DefaultSampler: sdktrace.AlwaysSample(),
-	}
-	idg := xray.NewIDGenerator()
-
-	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithConfig(cfg),
-		sdktrace.WithSyncer(exporter),
-		sdktrace.WithIDGenerator(idg),
-	)
-
-	otel.SetTracerProvider(tp)
-	otel.SetTextMapPropagator(xray.Propagator{})
-}
