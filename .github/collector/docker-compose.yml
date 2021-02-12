@@ -8,6 +8,7 @@ services:
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
     ports:
       - '4317:4317'
 
@@ -16,6 +17,7 @@ services:
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
       - AWS_REGION=us-west-2
       - LISTEN_ADDRESS
       - OTEL_EXPORTER_OTLP_INSECURE=True
@@ -32,4 +34,5 @@ services:
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
       - AWS_REGION=us-west-2
