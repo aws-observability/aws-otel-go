@@ -3,9 +3,9 @@ updates:
 - package-ecosystem: gomod
   directory: "/sampleapp"
   schedule:
-    interval: weekly
+    interval: daily
   
 - package-ecosystem: gomod
   directory: "/benchmark"
   schedule:
-    interval: weekly
+    interval: daily
