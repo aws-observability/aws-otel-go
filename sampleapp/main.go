@@ -33,6 +33,8 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
+	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/metric"
 	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
 	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
 	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
@@ -43,6 +45,7 @@ import (
 )
 
 var tracer = otel.Tracer("sample-app")
+var meter = otel.Meter("test-meter")
 
 func main() {
 
@@ -50,6 +53,22 @@ func main() {
 
 	r := mux.NewRouter()
 	r.Use(otelmux.Middleware("my-server"))
+
+	// labels represent additional key-value descriptors that can be bound to a
+	// metric observer or recorder.
+	commonLabels := []label.KeyValue{
+		label.String("labelA", "chocolate"),
+		label.String("labelB", "raspberry"),
+		label.String("labelC", "vanilla"),
+	}
+
+	// Recorder metric example
+	valuerecorder := metric.Must(meter).
+		NewFloat64Counter(
+			"an_important_metric",
+			metric.WithDescription("Measures the cumulative epicness of the app"),
+		).Bind(commonLabels...)
+	defer valuerecorder.Unbind()
 
 	r.HandleFunc("/aws-sdk-call", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -87,6 +106,13 @@ func main() {
 			return getXrayTraceID(trace.SpanFromContext(ctx)), err
 
 		}(ctx)
+
+		ctx, span := tracer.Start(
+			ctx,
+			"CollectorExporter-Example",
+			trace.WithAttributes(commonLabels...))
+		defer span.End()
+		valuerecorder.Add(ctx, 1.0)
 
 		json := simplejson.New()
 		json.Set("traceId", xrayTraceID)
@@ -161,6 +187,7 @@ func initProvider() {
 
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(xray.Propagator{})
+	otel.SetMeterProvider(cont.MeterProvider())
 	_ = cont.Start(ctx)
 }
 
