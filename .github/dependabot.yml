@@ -3,5 +3,9 @@ updates:
 - package-ecosystem: gomod
   directory: "/sampleapp"
   schedule:
-    interval: daily
-  open-pull-requests-limit: 10
+    interval: weekly
+  
+- package-ecosystem: gomod
+  directory: "/benchmark"
+  schedule:
+    interval: weekly
