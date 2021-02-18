@@ -35,6 +35,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
 	"go.opentelemetry.io/otel/label"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/global"
 	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
 	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
 	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
@@ -45,7 +46,7 @@ import (
 )
 
 var tracer = otel.Tracer("sample-app")
-var meter = otel.Meter("test-meter")
+var meter = global.Meter("test-meter")
 
 func main() {
 
@@ -187,7 +188,7 @@ func initProvider() {
 
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(xray.Propagator{})
-	otel.SetMeterProvider(cont.MeterProvider())
+	global.SetMeterProvider(cont.MeterProvider())
 	_ = cont.Start(ctx)
 }
 
