@@ -64,12 +64,7 @@ func main() {
 	}
 
 	// Recorder metric example
-	valuerecorder := metric.Must(meter).
-		NewFloat64Counter(
-			"an_important_metric",
-			metric.WithDescription("Measures the cumulative epicness of the app"),
-		).Bind(commonLabels...)
-	defer valuerecorder.Unbind()
+	valueRecorder := metric.Must(meter).NewInt64Counter("counter")
 
 	r.HandleFunc("/aws-sdk-call", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -113,7 +108,7 @@ func main() {
 			"CollectorExporter-Example",
 			trace.WithAttributes(commonLabels...))
 		defer span.End()
-		valuerecorder.Add(ctx, 1.0)
+		valueRecorder.Add(ctx, 1, commonLabels...)
 
 		json := simplejson.New()
 		json.Set("traceId", xrayTraceID)
