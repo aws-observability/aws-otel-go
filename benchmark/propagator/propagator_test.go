@@ -4,9 +4,10 @@ import (
 	"context"
 	"net/http"
 	"testing"
-
+	
 	"go.opentelemetry.io/contrib/propagators/aws/xray"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 func BenchmarkPropagatorExtract(b *testing.B) {
@@ -21,7 +22,7 @@ func BenchmarkPropagatorExtract(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = propagator.Extract(ctx, req.Header)
+		_ = propagator.Extract(ctx, propagation.HeaderCarrier(req.Header))
 	}
 }
 
@@ -34,7 +35,7 @@ func BenchmarkPropagatorInject(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		propagator.Inject(ctx, req.Header)
+		propagator.Inject(ctx, propagation.HeaderCarrier(req.Header))
 	}
 }
 
