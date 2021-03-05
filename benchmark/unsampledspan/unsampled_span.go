@@ -5,7 +5,7 @@ import (
 
 	"go.opentelemetry.io/contrib/propagators/aws/xray"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/attribute"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -58,8 +58,8 @@ func addAttributesToUnSampledSpan() {
 	)
 	defer span.End()
 
-	span.SetAttributes(label.Key("example label 1").String("value 1"))
-	span.SetAttributes(label.Key("example label 2").String("value 2"))
+	span.SetAttributes(attribute.Key("example attribute 1").String("value 1"))
+	span.SetAttributes(attribute.Key("example attribute 2").String("value 2"))
 }
 
 func initTracer() {
