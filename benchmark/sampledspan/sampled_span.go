@@ -12,12 +12,7 @@ import (
 
 var tracer = otel.Tracer("sample-app")
 
-func main() {
-	initTracer()
-}
-
 func startAndEndSampledSpan() {
-
 	var span trace.Span
 	_, span = tracer.Start(
 		context.Background(),
@@ -28,7 +23,6 @@ func startAndEndSampledSpan() {
 }
 
 func startAndEndNestedSampledSpan() {
-
 	var span trace.Span
 	ctx, span := tracer.Start(context.Background(), "Parent operation...")
 	defer span.End()
@@ -38,7 +32,6 @@ func startAndEndNestedSampledSpan() {
 }
 
 func getCurrentSampledSpan() trace.Span {
-
 	var span trace.Span
 	ctx, span := tracer.Start(
 		context.Background(),
@@ -50,7 +43,6 @@ func getCurrentSampledSpan() trace.Span {
 }
 
 func addAttributesToSampledSpan() {
-
 	var span trace.Span
 	_, span = tracer.Start(
 		context.Background(),
@@ -62,15 +54,11 @@ func addAttributesToSampledSpan() {
 	span.SetAttributes(attribute.Key("example attribute 2").String("value 2"))
 }
 
-func initTracer() {
-
-	cfg := sdktrace.Config{
-		DefaultSampler: sdktrace.AlwaysSample(),
-	}
+func init() {
 	idg := xray.NewIDGenerator()
 
 	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithConfig(cfg),
+		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithIDGenerator(idg),
 	)
 
