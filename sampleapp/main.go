@@ -49,7 +49,6 @@ var tracer = otel.Tracer("sample-app")
 var meter = global.Meter("test-meter")
 
 func main() {
-
 	initProvider()
 
 	r := mux.NewRouter()
@@ -131,7 +130,6 @@ func main() {
 }
 
 func initProvider() {
-
 	ctx := context.Background()
 
 	endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
@@ -148,9 +146,6 @@ func initProvider() {
 	exporter, err := otlp.NewExporter(ctx, driver)
 	handleErr(err, "failed to create new OTLP exporter")
 
-	cfg := sdktrace.Config{
-		DefaultSampler: sdktrace.AlwaysSample(),
-	}
 	idg := xray.NewIDGenerator()
 
 	service := os.Getenv("GO_GORILLA_SERVICE_NAME")
@@ -166,7 +161,7 @@ func initProvider() {
 	handleErr(err, "failed to create resource")
 
 	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithConfig(cfg),
+		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithResource(res),
 		sdktrace.WithSyncer(exporter),
 		sdktrace.WithIDGenerator(idg),
@@ -177,7 +172,7 @@ func initProvider() {
 			simple.NewWithExactDistribution(),
 			exporter,
 		),
-		controller.WithPusher(exporter),
+		controller.WithExporter(exporter),
 		controller.WithCollectPeriod(2*time.Second),
 	)
 
@@ -188,7 +183,7 @@ func initProvider() {
 }
 
 func getXrayTraceID(span trace.Span) string {
-	xrayTraceID := span.SpanContext().TraceID.String()
+	xrayTraceID := span.SpanContext().TraceID().String()
 	result := fmt.Sprintf("1-%s-%s", xrayTraceID[0:8], xrayTraceID[8:])
 	return result
 }
