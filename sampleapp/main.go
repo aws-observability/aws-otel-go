@@ -17,14 +17,11 @@ package main
 import (
 	"context"
 	"fmt"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"time"
-
-	"google.golang.org/grpc"
 
 	simplejson "github.com/bitly/go-simplejson"
 	"github.com/gorilla/mux"
@@ -42,8 +39,9 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.opentelemetry.io/otel/trace"
+	"google.golang.org/grpc"
 )
 
 var tracer = otel.Tracer("sample-app")
@@ -164,7 +162,7 @@ func initProvider() {
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithResource(res),
-		sdktrace.WithSyncer(traceExporter),
+		sdktrace.WithBatcher(traceExporter),
 		sdktrace.WithIDGenerator(idg),
 	)
 
