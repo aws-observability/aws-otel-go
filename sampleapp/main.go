@@ -23,17 +23,15 @@ import (
 	"os"
 	"time"
 
-	"google.golang.org/grpc"
-
 	simplejson "github.com/bitly/go-simplejson"
 	"github.com/gorilla/mux"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/contrib/propagators/aws/xray"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/global"
 	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
@@ -41,8 +39,9 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/semconv"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.opentelemetry.io/otel/trace"
+	"google.golang.org/grpc"
 )
 
 var tracer = otel.Tracer("sample-app")
@@ -137,14 +136,13 @@ func initProvider() {
 		endpoint = "0.0.0.0:55680" // setting default endpoint for exporter
 	}
 
-	// Create new OTLP Exporter
-	driver := otlpgrpc.NewDriver(
-		otlpgrpc.WithInsecure(),
-		otlpgrpc.WithEndpoint(endpoint),
-		otlpgrpc.WithDialOption(grpc.WithBlock()), // useful for testing
-	)
-	exporter, err := otlp.NewExporter(ctx, driver)
-	handleErr(err, "failed to create new OTLP exporter")
+	// Create and start new OTLP trace exporter
+	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure(), otlptracegrpc.WithEndpoint(endpoint), otlptracegrpc.WithDialOption(grpc.WithBlock()))
+	handleErr(err, "failed to create new OTLP trace exporter")
+
+	// Create and start new OTLP trace exporter
+	metricExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithInsecure(), otlpmetricgrpc.WithEndpoint(endpoint), otlpmetricgrpc.WithDialOption(grpc.WithBlock()))
+	handleErr(err, "failed to create new OTLP metric exporter")
 
 	idg := xray.NewIDGenerator()
 
@@ -152,6 +150,7 @@ func initProvider() {
 	if service == "" {
 		service = "go-gorilla"
 	}
+
 	res, err := resource.New(ctx,
 		resource.WithAttributes(
 			// the service name used to display traces in backends
@@ -163,16 +162,16 @@ func initProvider() {
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithResource(res),
-		sdktrace.WithSyncer(exporter),
+		sdktrace.WithBatcher(traceExporter),
 		sdktrace.WithIDGenerator(idg),
 	)
 
 	cont := controller.New(
 		processor.New(
 			simple.NewWithExactDistribution(),
-			exporter,
+			metricExporter,
 		),
-		controller.WithExporter(exporter),
+		controller.WithExporter(metricExporter),
 		controller.WithCollectPeriod(2*time.Second),
 	)
 
