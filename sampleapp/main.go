@@ -133,7 +133,7 @@ func initProvider() {
 
 	endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 	if endpoint == "" {
-		endpoint = "0.0.0.0:55680" // setting default endpoint for exporter
+		endpoint = "0.0.0.0:4317" // setting default endpoint for exporter
 	}
 
 	// Create and start new OTLP trace exporter

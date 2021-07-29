@@ -10,4 +10,4 @@
     ```
     localhost:8080/aws-sdk-call or localhost:8080/outgoing-http-call
     ```
-4. Make sure to set `OTEL_EXPORTER_OTLP_ENDPOINT` (default value set by sample app is `0.0.0.0:55680`)
+4. Make sure to set `OTEL_EXPORTER_OTLP_ENDPOINT` (default value set by sample app is `0.0.0.0:4317`)
