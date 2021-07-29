@@ -79,8 +79,9 @@ go.opentelemetry.io/contrib/propagators v0.21.0 h1:Wnio4Ffi9MoLrUkN/J5yqtHf2F9a7
 go.opentelemetry.io/contrib/propagators v0.21.0/go.mod h1:7QCSkXB+JDNZfohtRS0z3qnY+zPjFbe01o4iyEoPmRk=
 go.opentelemetry.io/contrib/propagators/aws v0.21.0 h1:UwLcaHxOxKQjoxbnaIs1CMyHOx0a+s+X6Op48pJD758=
 go.opentelemetry.io/contrib/propagators/aws v0.21.0/go.mod h1:f57X7xnBA3tv9ci/zq3KqkEAWBdXoSthcRRgGlpCxSI=
-go.opentelemetry.io/otel v1.0.0-RC1 h1:4CeoX93DNTWt8awGK9JmNXzF9j7TyOu9upscEdtcdXc=
 go.opentelemetry.io/otel v1.0.0-RC1/go.mod h1:x9tRa9HK4hSSq7jf2TKbqFbtt58/TGk0f9XiEYISI1I=
+go.opentelemetry.io/otel v1.0.0-RC2 h1:SHhxSjB+omnGZPgGlKe+QMp3MyazcOHdQ8qwo89oKbg=
+go.opentelemetry.io/otel v1.0.0-RC2/go.mod h1:w1thVQ7qbAy8MHb0IFj8a5Q2QU0l2ksf8u/CN8m3NOM=
 go.opentelemetry.io/otel/exporters/otlp/otlpmetric v0.21.0 h1:Yi+SrcMhA21eMWN7rf5agAyiwbTM65TdS0xo3otuzAo=
 go.opentelemetry.io/otel/exporters/otlp/otlpmetric v0.21.0/go.mod h1:MNURFhHE+mXqdBMy23SVb/fn4PEzTG9iJ3LVdTqKRSo=
 go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v0.21.0 h1:OB+C8gNWhwtvzm5zRUX+HyeCb6Y1Fuzo+NgGKtqFxLg=
@@ -101,8 +102,9 @@ go.opentelemetry.io/otel/sdk/export/metric v0.21.0 h1:4tSMVkDbvrowOeP/6rOfGABEWv
 go.opentelemetry.io/otel/sdk/export/metric v0.21.0/go.mod h1:gTaOMSQmL4zfsTL47desIPbPla5MyMG29lN3PzcibVg=
 go.opentelemetry.io/otel/sdk/metric v0.21.0 h1:LNLUj35NNdEpyJQwj/htiEsfnY6GeTIwYHweCJNV+nc=
 go.opentelemetry.io/otel/sdk/metric v0.21.0/go.mod h1:OHOcF8ZjE/L8oL/QXpUFWklPwtaukrfHgoAiPek53rQ=
-go.opentelemetry.io/otel/trace v1.0.0-RC1 h1:jrjqKJZEibFrDz+umEASeU3LvdVyWKlnTh7XEfwrT58=
 go.opentelemetry.io/otel/trace v1.0.0-RC1/go.mod h1:86UHmyHWFEtWjfWPSbu0+d0Pf9Q6e1U+3ViBOc+NXAg=
+go.opentelemetry.io/otel/trace v1.0.0-RC2 h1:dunAP0qDULMIT82atj34m5RgvsIK6LcsXf1c/MsYg1w=
+go.opentelemetry.io/otel/trace v1.0.0-RC2/go.mod h1:JPQ+z6nNw9mqEGT8o3eoPTdnNI+Aj5JcxEsVGREIAy4=
 go.opentelemetry.io/proto/otlp v0.7.0/go.mod h1:PqfVotwruBrMGOCsRd/89rSnXhoiJIqeYNgFYFoEGnI=
 go.opentelemetry.io/proto/otlp v0.9.0 h1:C0g6TWmQYvjKRnljRULLWUVJGy8Uvu0NEL/5frY2/t4=
 go.opentelemetry.io/proto/otlp v0.9.0/go.mod h1:1vKfU9rv61e9EVGthD1zNvUbiwPcimSsOPU9brfSHJg=
