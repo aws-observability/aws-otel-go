@@ -1,6 +1,6 @@
 ## Getting Started
 
-1. Install Go 1.14 or higher
+1. Install Go 1.15 or higher
 2. Go into the `sampleapp` directory and run the following commands
     ```
     go build -o sampleapp (build binry)
