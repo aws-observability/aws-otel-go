@@ -37,7 +37,7 @@ services:
       - AWS_DEFAULT_REGION
       - SAMPLE_APP_LOG_LEVEL=ERROR
       - OTEL_RESOURCE_ATTRIBUTES=service.name=aws-otel-integ-test
-      - OTEL_EXPORTER_OTLP_ENDPOINT=grpc://otel:4317
+      - OTEL_EXPORTER_OTLP_ENDPOINT=otel:4317
     ports:
       - '${LISTEN_ADDRESS_PORT}:${LISTEN_ADDRESS_PORT}'
 

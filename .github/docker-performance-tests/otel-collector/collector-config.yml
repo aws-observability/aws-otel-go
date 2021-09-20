@@ -74,8 +74,7 @@ service:
     metrics:
       receivers:
         - hostmetrics
-        # Metrics not very available
-        # - otlp
+        - otlp
       processors:
         - filter
         - metricstransform

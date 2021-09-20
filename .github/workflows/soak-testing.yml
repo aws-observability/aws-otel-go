@@ -18,12 +18,12 @@ on:
     - cron: '0 15 * * *'
 env:
   # NOTE: The configuration of `APP_PROCESS_EXECUTABLE_NAME` is repo dependent
-  APP_PROCESS_EXECUTABLE_NAME: python3
+  APP_PROCESS_EXECUTABLE_NAME: sampleapp
   AWS_DEFAULT_REGION: us-east-1
   DEFAULT_TEST_DURATION_MINUTES: 300
   HOSTMETRICS_INTERVAL_SECS: 600
-  CPU_LOAD_THRESHOLD: 71
-  TOTAL_MEMORY_THRESHOLD: 2147483648
+  CPU_LOAD_THRESHOLD: 50
+  TOTAL_MEMORY_THRESHOLD: 1073741824 # 1 GiB
   MAX_BENCHMARKS_TO_KEEP: 100
   # TODO: We might be able to adapt the "Soak Tests" to be "Overhead Tests".
   # This means monitoring the Sample App's performance using high levels of TPS
@@ -41,11 +41,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app-platform: [ flask ]
-        instrumentation-type: [ auto, manual, none ]
+        app-platform: [ golang_alpine ]
+        instrumentation-type: [ manual ]
     env:
       # NOTE: The configuration of `APP_PATH` is repo dependent
-      APP_PATH: integration-test-apps/${{ matrix.instrumentation-type}}-instrumentation/${{ matrix.app-platform }}
+      APP_PATH: sampleapp
       LOGS_NAMESPACE: ${{ github.repository }}/soak-tests-${{ matrix.app-platform }}-${{ matrix.instrumentation-type }}
     steps:
     # MARK: - GitHub Workflow Event Type Specific Values
@@ -70,41 +70,12 @@ jobs:
 
       # NOTE: The configuration of `APP_PROCESS_COMMAND_LINE_DIMENSION_VALUE` is
       # repo dependent
-      - name: Configure Auto Instrumentation-Type Specific Values
-        if: ${{ matrix.instrumentation-type == 'auto' }}
-        run: |
-          echo 'APP_PROCESS_COMMAND_LINE_DIMENSION_VALUE<<EOF' >> $GITHUB_ENV
-          echo '/usr/local/bin/python3 application.py' | tee --append $GITHUB_ENV;
-          echo 'EOF' >> $GITHUB_ENV
       - name: Configure Manual Instrumentation-Type Specific Values
-        if: ${{ matrix.instrumentation-type == 'manual' ||
-          matrix.instrumentation-type == 'none' }}
+        if: ${{ matrix.instrumentation-type == 'manual' }}
         run: |
           echo 'APP_PROCESS_COMMAND_LINE_DIMENSION_VALUE<<EOF' >> $GITHUB_ENV
-          echo '/usr/local/bin/python3 /app/application.py' | tee --append $GITHUB_ENV;
+          echo '/sampleapp' | tee --append $GITHUB_ENV;
           echo 'EOF' >> $GITHUB_ENV
-      # FIXME: This uses the latest Commit SHA of the upstream Core repo. We
-      # should provide it as an input to consider the edge case where we want to
-      # run against a specific Core repo change. For the manual
-      # instrumentation app.
-      # FIXME: We might also consider making this configurable for the
-      # Auto-Instrumentation app.
-      - name: Clone OpenTelemetry Core Repo
-        uses: actions/checkout@v2
-        if: ${{ matrix.instrumentation-type == 'manual' }}
-        with:
-          repository: open-telemetry/opentelemetry-python
-          path: ${{ env.APP_PATH }}/opentelemetry-python-core
-      # FIXME: This uses the latest Commit SHA of the upstream Contrib repo. We
-      # should provide it as an input to consider the edge case where we want to
-      # run against a specific Contrib repo change. For the manual
-      # instrumentation app.
-      - name: Clone OpenTelemetry Contrib Repo
-        uses: actions/checkout@v2
-        if: ${{ matrix.instrumentation-type == 'manual' }}
-        with:
-          repository: open-telemetry/opentelemetry-python-contrib
-          path: ${{ env.APP_PATH }}/opentelemetry-python-contrib
 
     # MARK: - Uniquely identify this Sample App environment
 
