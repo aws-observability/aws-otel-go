@@ -23,7 +23,7 @@ import (
 	"os"
 	"time"
 
-	simplejson "github.com/bitly/go-simplejson"
+	"github.com/bitly/go-simplejson"
 	"github.com/gorilla/mux"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -151,11 +151,10 @@ func initProvider() {
 		service = "go-gorilla"
 	}
 
-	res, err := resource.New(ctx,
-		resource.WithAttributes(
-			// the service name used to display traces in backends
-			semconv.ServiceNameKey.String("test-service"),
-		),
+	res := resource.NewWithAttributes(
+		semconv.SchemaURL,
+		// the service name used to display traces in backends
+		semconv.ServiceNameKey.String("test-service"),
 	)
 	handleErr(err, "failed to create resource")
 
@@ -173,6 +172,7 @@ func initProvider() {
 		),
 		controller.WithExporter(metricExporter),
 		controller.WithCollectPeriod(2*time.Second),
+		controller.WithResource(res),
 	)
 
 	otel.SetTracerProvider(tp)
