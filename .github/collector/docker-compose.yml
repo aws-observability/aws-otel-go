@@ -2,7 +2,7 @@ version: "3.7"
 services:
   otel:
     image: public.ecr.aws/aws-observability/aws-otel-collector:latest
-    command: --config /config/collector-config.yml --log-level debug
+    command: --config /config/collector-config.yml
     volumes:
       - .:/config
     environment:
