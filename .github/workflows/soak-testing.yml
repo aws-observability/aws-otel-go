@@ -216,7 +216,7 @@ jobs:
         with:
           filename: .github/auto-issue-templates/failure-during-soak_tests.md
       - name: Publish Issue if failed AFTER Performance Tests
-        uses: NathanielRN/create-an-issue@v2.5.1-alpha2
+        uses: JasonEtco/create-an-issue@v2
         if: ${{ github.event_name == 'schedule' &&
           steps.check-failure-after-performance-tests.outcome == 'failure' }}
         env:
