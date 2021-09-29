@@ -105,10 +105,12 @@ jobs:
           LISTEN_ADDRESS_PORT: 8080
           LOG_GROUP_NAME: otel-sdk-performance-tests
           # Also uses:
+          # AWS_ACCESS_KEY_ID
+          # AWS_SECRET_ACCESS_KEY
+          # AWS_SESSION_TOKEN
           # APP_PATH
           # TARGET_SHA
           # LOGS_NAMESPACE
-          # LOG_STREAM_NAME
           # APP_PROCESS_COMMAND_LINE_DIMENSION_VALUE
           # APP_PROCESS_EXECUTABLE_NAME
           # HOSTMETRICS_INTERVAL_SECS
