@@ -17,12 +17,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"os"
-	"time"
-
 	"github.com/bitly/go-simplejson"
 	"github.com/gorilla/mux"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
@@ -30,22 +24,19 @@ import (
 	"go.opentelemetry.io/contrib/propagators/aws/xray"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/metric/global"
-	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
-	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
-	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
 )
 
 var tracer = otel.Tracer("sample-app")
-var meter = global.Meter("test-meter")
 
 func main() {
 	initProvider()
@@ -60,9 +51,6 @@ func main() {
 		attribute.String("labelB", "raspberry"),
 		attribute.String("labelC", "vanilla"),
 	}
-
-	// Recorder metric example
-	valueRecorder := metric.Must(meter).NewInt64Counter("counter")
 
 	r.HandleFunc("/aws-sdk-call", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -106,7 +94,6 @@ func main() {
 			"CollectorExporter-Example",
 			trace.WithAttributes(commonLabels...))
 		defer span.End()
-		valueRecorder.Add(ctx, 1, commonLabels...)
 
 		json := simplejson.New()
 		json.Set("traceId", xrayTraceID)
@@ -140,10 +127,6 @@ func initProvider() {
 	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure(), otlptracegrpc.WithEndpoint(endpoint), otlptracegrpc.WithDialOption(grpc.WithBlock()))
 	handleErr(err, "failed to create new OTLP trace exporter")
 
-	// Create and start new OTLP trace exporter
-	metricExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithInsecure(), otlpmetricgrpc.WithEndpoint(endpoint), otlpmetricgrpc.WithDialOption(grpc.WithBlock()))
-	handleErr(err, "failed to create new OTLP metric exporter")
-
 	idg := xray.NewIDGenerator()
 
 	service := os.Getenv("GO_GORILLA_SERVICE_NAME")
@@ -165,20 +148,8 @@ func initProvider() {
 		sdktrace.WithIDGenerator(idg),
 	)
 
-	cont := controller.New(
-		processor.New(
-			simple.NewWithExactDistribution(),
-			metricExporter,
-		),
-		controller.WithExporter(metricExporter),
-		controller.WithCollectPeriod(2*time.Second),
-		controller.WithResource(res),
-	)
-
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(xray.Propagator{})
-	global.SetMeterProvider(cont.MeterProvider())
-	_ = cont.Start(ctx)
 }
 
 func getXrayTraceID(span trace.Span) string {
