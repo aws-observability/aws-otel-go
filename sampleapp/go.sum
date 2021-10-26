@@ -99,8 +99,6 @@ go.opentelemetry.io/otel/sdk/export/metric v0.24.0/go.mod h1:chmxXGVNcpCih5XyniV
 go.opentelemetry.io/otel/sdk/metric v0.24.0 h1:LLHrZikGdEHoHihwIPvfFRJX+T+NdrU2zgEqf7tQ7Oo=
 go.opentelemetry.io/otel/sdk/metric v0.24.0/go.mod h1:KDgJgYzsIowuIDbPM9sLDZY9JJ6gqIDWCx92iWV8ejk=
 go.opentelemetry.io/otel/trace v1.0.0/go.mod h1:PXTWqayeFUlJV1YDNhsJYB184+IvAH814St6o6ajzIs=
-go.opentelemetry.io/otel/trace v1.0.1 h1:StTeIH6Q3G4r0Fiw34LTokUFESZgIDUr0qIJ7mKmAfw=
-go.opentelemetry.io/otel/trace v1.0.1/go.mod h1:5g4i4fKLaX2BQpSBsxw8YYcgKpMMSW3x7ZTuYBr3sUk=
 go.opentelemetry.io/proto/otlp v0.7.0/go.mod h1:PqfVotwruBrMGOCsRd/89rSnXhoiJIqeYNgFYFoEGnI=
 go.opentelemetry.io/proto/otlp v0.9.0 h1:C0g6TWmQYvjKRnljRULLWUVJGy8Uvu0NEL/5frY2/t4=
 go.opentelemetry.io/proto/otlp v0.9.0/go.mod h1:1vKfU9rv61e9EVGthD1zNvUbiwPcimSsOPU9brfSHJg=
