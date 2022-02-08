@@ -25,6 +25,7 @@ env:
   CPU_LOAD_THRESHOLD: 50
   TOTAL_MEMORY_THRESHOLD: 1073741824 # 1 GiB
   MAX_BENCHMARKS_TO_KEEP: 100
+  LISTEN_ADDRESS_PORT: 8080
   # TODO: We might be able to adapt the "Soak Tests" to be "Overhead Tests".
   # This means monitoring the Sample App's performance using high levels of TPS
   # for the Load Generator over a shorter period of testing time. For example:
@@ -33,7 +34,7 @@ env:
 
 jobs:
   test_apps_and_publish_results:
-    name: Publish app and Soak Performance Test - (${{ matrix.app-platform }}, ${{ matrix.instrumentation-type }})
+    name: Soak Performance Test - (${{ matrix.app-platform }}, ${{ matrix.instrumentation-type }})
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -101,7 +102,6 @@ jobs:
         working-directory: .github/docker-performance-tests
         env:
           INSTANCE_ID: ${{ github.run_id }}-${{ github.run_number }}
-          LISTEN_ADDRESS_PORT: 8080
           LOG_GROUP_NAME: otel-sdk-performance-tests
           # Also uses:
           # AWS_ACCESS_KEY_ID
@@ -109,6 +109,7 @@ jobs:
           # AWS_SESSION_TOKEN
           # APP_PATH
           # TARGET_SHA
+          # LISTEN_ADDRESS_PORT
           # LOGS_NAMESPACE
           # APP_PROCESS_COMMAND_LINE_DIMENSION_VALUE
           # APP_PROCESS_EXECUTABLE_NAME
