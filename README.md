@@ -2,7 +2,9 @@
 
 ## Introduction
 
-AWS Distro for OpenTelemetry Go SDK (ADOT Go SDK) is a distribution of [OpenTelemetry Go](https://github.com/open-telemetry/opentelemetry-go) SDK, configured to trace applications in a format compatible with the AWS X-Ray service. This way, all the features of the OpenTelemetry project are available, but its components are configured to create traces which can be viewed in the AWS X-Ray console and are configured to allow propagation of those contexts across multiple downstream AWS services.
+This repo hosts documentation and sample apps for the ADOT Go library which provides the AWS service integrations for traces and metrics for the [OpenTelemetry Go](https://github.com/open-telemetry/opentelemetry-go) library. The library can be configured to support trace applications with the AWS X-Ray service. 
+
+All features of the OpenTelemetry library are available along with its components beinbg configured to create traces which can be viewed in the AWS X-Ray console and to allow propagation of those contexts across multiple downstream AWS services.
 
 Once traces have been generated, they can be sent to a tracing service, like AWS X-Ray, to visualize and understand exactly what happened during the traced calls. For more information about the AWS X-Ray service, see the [AWS X-Ray Developer Guide](https://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html). 
 
