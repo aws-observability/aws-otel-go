@@ -55,6 +55,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: changes
     steps:
+      - name: Checkout
+        if: ${{ needs.changes.outputs.changed == 'true' }}
+        uses: actions/checkout@v2
       - name: build docker image
         if: ${{ needs.changes.outputs.dockerfile == 'true' }}
         working-directory: ./sampleapp
