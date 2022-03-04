@@ -1,7 +1,0 @@
-changed:
-  - '.github/workflows/PR-build.yml'
-  - 'sampleapp/**'
-all:
-  - '**'
-dockerfile:
-  - 'sampleapp/Dockerfile'
