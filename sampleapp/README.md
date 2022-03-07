@@ -3,7 +3,7 @@
 1. Install Go 1.15 or higher
 2. Go into the `sampleapp` directory and run the following commands
     ```
-    go build -o sampleapp (build binry)
+    go build -o sampleapp (build binary)
     ./sampleapp (execute binary)
     ```
 3. Visit the following endpoints
