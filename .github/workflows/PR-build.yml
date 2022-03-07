@@ -1,0 +1,57 @@
+name: PR Build
+
+on:
+  pull_request:
+    branches:
+      - main
+
+env:
+  IMAGE_NAME: aws-otel-go-sampleapp
+concurrency:
+  group: pr-build-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  build-binary:
+    runs-on: ubuntu-latest
+    steps:
+    # Set up building environment, patch the dev repo code on dispatch events.  
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: '^1.17.7'
+
+    - name: Checkout
+      uses: actions/checkout@v2
+    
+    - name: Cache go
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Build Binary
+      working-directory: ./sampleapp
+      run: go build
+    
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+        
+      - name: Build Image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./sampleapp
+          push: false
+          tags: sampleapp
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
