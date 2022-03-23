@@ -17,6 +17,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/bitly/go-simplejson"
 	"github.com/gorilla/mux"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
@@ -29,11 +34,6 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.opentelemetry.io/otel/trace"
-	"google.golang.org/grpc"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"os"
 )
 
 var tracer = otel.Tracer("sample-app")
@@ -61,7 +61,6 @@ func main() {
 		json := simplejson.New()
 		json.Set("traceId", xrayTraceID)
 		payload, _ := json.MarshalJSON()
-
 		_, _ = w.Write(payload)
 
 	}))
@@ -118,14 +117,20 @@ func main() {
 func initProvider() {
 	ctx := context.Background()
 
+	fmt.Println("ctx ", ctx)
+
 	endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 	if endpoint == "" {
-		endpoint = "0.0.0.0:4317" // setting default endpoint for exporter
+		endpoint = "https://localhost:4317" // setting default endpoint for exporter
 	}
 
+	fmt.Println("endpoint ", endpoint)
+
 	// Create and start new OTLP trace exporter
-	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure(), otlptracegrpc.WithEndpoint(endpoint), otlptracegrpc.WithDialOption(grpc.WithBlock()))
+	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure(), otlptracegrpc.WithEndpoint(endpoint))
 	handleErr(err, "failed to create new OTLP trace exporter")
+
+	fmt.Println("traceExporter ", traceExporter)
 
 	idg := xray.NewIDGenerator()
 
@@ -133,6 +138,8 @@ func initProvider() {
 	if service == "" {
 		service = "go-gorilla"
 	}
+
+	fmt.Println("service ", service)
 
 	res := resource.NewWithAttributes(
 		semconv.SchemaURL,
