@@ -34,6 +34,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.opentelemetry.io/otel/trace"
+	"google.golang.org/grpc"
 )
 
 var tracer = otel.Tracer("sample-app")
@@ -123,7 +124,7 @@ func initProvider() {
 	}
 
 	// Create and start new OTLP trace exporter
-	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure(), otlptracegrpc.WithEndpoint(endpoint))
+	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure(), otlptracegrpc.WithEndpoint(endpoint), otlptracegrpc.WithDialOption(grpc.WithBlock()))
 	handleErr(err, "failed to create new OTLP trace exporter")
 
 	idg := xray.NewIDGenerator()
