@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This repo hosts documentation and sample apps for the ADOT Go library which provides the AWS service integrations for traces and metrics for the [OpenTelemetry Go](https://github.com/open-telemetry/opentelemetry-go) library. The library can be configured to support trace applications with the AWS X-Ray service. 
+This repo hosts documentation and sample apps for the ADOT Go library which provides the AWS service integrations for traces and metrics for the [OpenTelemetry Go](https://github.com/open-telemetry/opentelemetry-go) library. The library can be configured to support trace applications with the AWS X-Ray service. Additionally, ADOT is in preview for Go metrics. 
 
 Please note all source code for the Go library is upstream on the OpenTelemetry project in the [OpenTelemetry Go](https://github.com/open-telemetry/opentelemetry-go) library repo. All features of the OpenTelemetry library are available along with its components beinbg configured to create traces which can be viewed in the AWS X-Ray console and to allow propagation of those contexts across multiple downstream AWS services.
 
@@ -30,7 +30,3 @@ The [OpenTelemetry Go](https://github.com/open-telemetry/opentelemetry-go) SDK p
 ## License
 
 This project is licensed under the Apache-2.0 License.
-
-
-
-
