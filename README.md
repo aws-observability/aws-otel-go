@@ -1,4 +1,4 @@
-# AWS Distro for OpenTelemetry Go SDK
+# AWS Distro for OpenTelemetry Go Language
 
 ## Introduction
 
