@@ -17,6 +17,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/bitly/go-simplejson"
 	"github.com/gorilla/mux"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
@@ -27,13 +32,9 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"os"
 )
 
 var tracer = otel.Tracer("sample-app")
