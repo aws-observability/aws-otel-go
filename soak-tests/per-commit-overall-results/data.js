@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1659211612876,
+  "lastUpdate": 1665086913996,
   "repoUrl": "https://github.com/aws-observability/aws-otel-go",
   "entries": {
     "Soak Test Results - sample-app-golang_alpine-manual": [
@@ -602,6 +602,38 @@ window.BENCHMARK_DATA = {
           {
             "name": "Soak Test Average CPU Load",
             "value": 0.00020833333333333335,
+            "unit": "Percent"
+          },
+          {
+            "name": "Soak Test Average Virtual Memory Used",
+            "value": 0,
+            "unit": "Megabytes"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]",
+            "email": "49699333+dependabot[bot]@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "31402ccfe1f9acc749deadb502c4a316c9e34372",
+          "message": "Bump go.opentelemetry.io/contrib/propagators/aws in /sampleapp (#205)\n\nBumps [go.opentelemetry.io/contrib/propagators/aws](https://github.com/open-telemetry/opentelemetry-go-contrib) from 1.8.0 to 1.10.0.\r\n- [Release notes](https://github.com/open-telemetry/opentelemetry-go-contrib/releases)\r\n- [Changelog](https://github.com/open-telemetry/opentelemetry-go-contrib/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/open-telemetry/opentelemetry-go-contrib/compare/v1.8.0...v1.10.0)\r\n\r\n---\r\nupdated-dependencies:\r\n- dependency-name: go.opentelemetry.io/contrib/propagators/aws\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n...\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2022-10-05T18:05:51Z",
+          "url": "https://github.com/aws-observability/aws-otel-go/commit/31402ccfe1f9acc749deadb502c4a316c9e34372"
+        },
+        "date": 1665086913558,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Soak Test Average CPU Load",
+            "value": 0.00011904761904761905,
             "unit": "Percent"
           },
           {
