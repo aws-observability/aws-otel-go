@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1665086913996,
+  "lastUpdate": 1668283594656,
   "repoUrl": "https://github.com/aws-observability/aws-otel-go",
   "entries": {
     "Soak Test Results - sample-app-golang_alpine-manual": [
@@ -634,6 +634,38 @@ window.BENCHMARK_DATA = {
           {
             "name": "Soak Test Average CPU Load",
             "value": 0.00011904761904761905,
+            "unit": "Percent"
+          },
+          {
+            "name": "Soak Test Average Virtual Memory Used",
+            "value": 0,
+            "unit": "Megabytes"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]",
+            "email": "49699333+dependabot[bot]@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "a987f9d03d39c91f428e8b765b578f0eebd260e2",
+          "message": "Bump google.golang.org/grpc from 1.49.0 to 1.50.1 in /sampleapp (#211)\n\nBumps [google.golang.org/grpc](https://github.com/grpc/grpc-go) from 1.49.0 to 1.50.1.\r\n- [Release notes](https://github.com/grpc/grpc-go/releases)\r\n- [Commits](https://github.com/grpc/grpc-go/compare/v1.49.0...v1.50.1)\r\n\r\n---\r\nupdated-dependencies:\r\n- dependency-name: google.golang.org/grpc\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n...\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2022-11-12T00:18:42Z",
+          "url": "https://github.com/aws-observability/aws-otel-go/commit/a987f9d03d39c91f428e8b765b578f0eebd260e2"
+        },
+        "date": 1668283594050,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Soak Test Average CPU Load",
+            "value": 0.00017857142857142857,
             "unit": "Percent"
           },
           {
