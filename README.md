@@ -29,6 +29,9 @@ The [OpenTelemetry Go](https://github.com/open-telemetry/opentelemetry-go) SDK p
 * [OpenTelemetry Go Contrib Repo](https://github.com/open-telemetry/opentelemetry-go-contrib)
 * [AWS Distro for OpenTelemetry](https://aws-otel.github.io/)
 
+## Security issue notifications
+If you discover a potential security issue in this project we ask that you notify AWS/Amazon Security via our [vulnerability reporting page](http://aws.amazon.com/security/vulnerability-reporting/). Please do **not** create a public github issue.
+
 ## License
 
 This project is licensed under the Apache-2.0 License.
