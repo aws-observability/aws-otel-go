@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1668715625744,
+  "lastUpdate": 1671653199588,
   "repoUrl": "https://github.com/aws-observability/aws-otel-go",
   "entries": {
     "Soak Test Results - sample-app-golang_alpine-manual": [
@@ -703,6 +703,38 @@ window.BENCHMARK_DATA = {
           {
             "name": "Soak Test Average Virtual Memory Used",
             "value": 0,
+            "unit": "Megabytes"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "bryan-aguilar",
+            "username": "bryan-aguilar",
+            "email": "46550959+bryan-aguilar@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "e12fdf3b8189fd3501a8471c3ce51eac49d4ed54",
+          "message": "Update readme with security notification blurb (#223)",
+          "timestamp": "2022-12-20T20:22:38Z",
+          "url": "https://github.com/aws-observability/aws-otel-go/commit/e12fdf3b8189fd3501a8471c3ce51eac49d4ed54"
+        },
+        "date": 1671653198057,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Soak Test Average CPU Load",
+            "value": 0.00017857142857142857,
+            "unit": "Percent"
+          },
+          {
+            "name": "Soak Test Average Virtual Memory Used",
+            "value": 0.008928571428571428,
             "unit": "Megabytes"
           }
         ]
