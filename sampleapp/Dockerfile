@@ -1,4 +1,4 @@
-FROM golang:1.17-alpine AS build-env
+FROM golang:1.19-alpine AS build-env
 
 RUN apk update && apk add ca-certificates
 
