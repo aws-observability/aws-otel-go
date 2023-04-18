@@ -12,6 +12,10 @@ To send traces to AWS X-Ray, you can use the [AWS Distro for OpenTelemetry (ADOT
 
 ADOT is in preview for Go metrics.
 
+## Deprecation Notice
+
+**WARNING:** This sample app is deprecated and is no longer maintained.  Please use the [new standardized sample apps](https://github.com/aws-observability/aws-otel-community/tree/master/sample-apps).
+
 ## Getting Started 
 
 Check out the getting started [documentation](https://aws-otel.github.io/docs/getting-started/go-sdk)
