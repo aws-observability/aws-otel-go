@@ -16,7 +16,9 @@ ADOT is in preview for Go metrics.
 
 Check out the getting started [documentation](https://aws-otel.github.io/docs/getting-started/go-sdk)
 
-## Sample Application
+## Sample Application (DEPRECATED)
+
+**WARNING:** This sample app is deprecated and is no longer maintained.  Please use the [new standardized sample apps](https://github.com/aws-observability/aws-otel-community/tree/master/sample-apps).
 
 See the [example sample application](https://github.com/aws-observability/aws-otel-go/blob/main/sampleapp/main.go) for setup steps.
 
