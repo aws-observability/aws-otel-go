@@ -1,5 +1,7 @@
 package otlptraceudp
 
+import "os"
+
 type config struct {
 	endpoint     string
 	signalPrefix string
@@ -33,8 +35,15 @@ func WithSignalPrefix(signalPrefix string) Option {
 }
 
 func newConfig(opts ...Option) *config {
+	endpoint := DefaultEndpoint
+
+	if isLambdaEnvironment() {
+		// If in an AWS Lambda Environment, `AWS_XRAY_DAEMON_ADDRESS` will be defined
+		endpoint = os.Getenv("AWS_XRAY_DAEMON_ADDRESS")
+	}
+
 	cfg := &config{
-		endpoint:     DefaultEndpoint,
+		endpoint:     endpoint,
 		signalPrefix: DefaultFormatOtelTracesBinaryPrefix,
 	}
 
@@ -43,4 +52,9 @@ func newConfig(opts ...Option) *config {
 	}
 
 	return cfg
+}
+
+func isLambdaEnvironment() bool {
+	// Detect if running in AWS Lambda environment
+	return os.Getenv("AWS_LAMBDA_FUNCTION_NAME") != ""
 }
