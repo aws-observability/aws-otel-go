@@ -1,3 +1,6 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
 package otlptraceudp
 
 import "os"
@@ -19,7 +22,7 @@ func (f optionFunc) apply(cfg *config) *config {
 }
 
 // WithEndpoint sets custom daemon endpoint.
-// If this option is not provided the default endpoint used will be 127.0.0.1:2000.
+// If this option is not provided, a default endpoint will be used.
 func WithEndpoint(endpoint string) Option {
 	return optionFunc(func(cfg *config) *config {
 		cfg.endpoint = endpoint

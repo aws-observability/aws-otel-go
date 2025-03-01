@@ -1,6 +1,10 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
 package otlptraceudp
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -35,7 +39,7 @@ func TestOtlpUdpClient(t *testing.T) {
 		}
 
 		spans := []*tracepb.ResourceSpans{&tracepb.ResourceSpans{}, &tracepb.ResourceSpans{}}
-		err := exporter.UploadTraces(nil, spans)
+		err := exporter.UploadTraces(context.TODO(), spans)
 
 		assert.NoError(t, err)
 
@@ -56,7 +60,7 @@ func TestOtlpUdpClient(t *testing.T) {
 		}
 
 		spans := []*tracepb.ResourceSpans{&tracepb.ResourceSpans{}, &tracepb.ResourceSpans{}}
-		err := exporter.UploadTraces(nil, spans)
+		err := exporter.UploadTraces(context.TODO(), spans)
 
 		assert.Error(t, err)
 		assert.Equal(t, "SendDataError", err.Error())
@@ -67,7 +71,7 @@ func TestOtlpUdpClient(t *testing.T) {
 		exporter := &client{
 			udpExporter: mockUdpExporter,
 		}
-		err := exporter.Stop(nil)
+		err := exporter.Stop(context.TODO())
 
 		assert.NoError(t, err)
 	})
