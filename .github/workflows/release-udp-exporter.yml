@@ -1,0 +1,64 @@
+name: Release UDP Exporter
+on:
+  workflow_dispatch:
+    inputs:
+      udp-exporter-version:
+        description: The version to tag the release with, e.g., 1.2.0
+        required: true
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  test-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Contrib Repo @ SHA - ${{ github.sha }}
+        uses: actions/checkout@v4
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+            go-version: "1.24.0"
+            check-latest: true
+
+      - name: Ensure Unit Tests are passing
+        run: |
+          cd exporters/otlptraceudp
+          go test ./...
+
+      - name: Download and run X-Ray Daemon
+        run: |
+          mkdir xray-daemon
+          cd xray-daemon
+          wget https://s3.us-west-2.amazonaws.com/aws-xray-assets.us-west-2/xray-daemon/aws-xray-daemon-linux-3.x.zip
+          unzip aws-xray-daemon-linux-3.x.zip
+          ./xray -o -n us-west-2 -f ./daemon-logs.log &
+
+      - name: Build Sample App
+        run: |
+          cd sample-apps/integ-test-http-server
+          go build -o integ-test-http-server .
+
+      - name: Run Sample App in Background
+        run: |
+          cd sample-apps/integ-test-http-server
+          ./integ-test-http-server &
+
+      - name: Call Sample App Endpoint
+        id: call-endpoint
+        run: |
+          echo "traceId=$(curl localhost:8080/test)" >> $GITHUB_OUTPUT
+          echo $traceId
+
+      - name: Print Daemon Logs
+        run: |
+          sleep 20
+          cat xray-daemon/daemon-logs.log
+
+      # - name: Tag UDP Exporter module
+      #   run: |
+      #     git tag exporters/otlptraceudp/v${{ inputs.udp-exporter-version }}
+
+      # - name: Publish tag for UDP Exporter module
+      #   run: git push --tags
