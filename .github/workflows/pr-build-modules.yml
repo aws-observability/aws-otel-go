@@ -64,7 +64,7 @@ jobs:
         go-version: ${{ matrix.go-version }}
         check-latest: true
 
-    - name: Run tests for Module with Coverage
+    - name: Run tests for each Module with Coverage
       if: matrix.platform.os == 'windows-latest'
       shell: bash
       env:
@@ -78,7 +78,7 @@ jobs:
           cd $rootDir
         done
 
-    - name: Run tests for Module and Generate Detailed Coverage Report
+    - name: Run tests for each Module and Generate Detailed Coverage Report
       if: matrix.platform.os != 'windows-latest'
       shell: bash
       env:
@@ -93,11 +93,12 @@ jobs:
           cat go_tool_coverage_output.txt
           coverage=$(cat go_tool_coverage_output.txt | fgrep total | awk '{print substr($3, 1, length($3)-1)}')
           coverage_rounded=$(printf '%.0f' $coverage)
-          echo "The Module Coverage is $coverage_rounded%"
           min_coverage=80 # this is 80.00%
           if [[ coverage_rounded -lt min_coverage ]]; then
             echo "Module Coverage ($coverage_rounded%) is less than the required minimum coverage ($min_coverage%)"
             exit 1
+          else
+            echo "Module Coverage ($coverage_rounded%) satisfies the required minimum coverage ($min_coverage%)"
           fi
           cd $rootDir
         done
