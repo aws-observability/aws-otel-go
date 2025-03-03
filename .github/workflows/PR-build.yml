@@ -22,10 +22,10 @@ jobs:
         go-version: '^1.17.7'
 
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     
     - name: Cache go
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: |
           ~/.cache/go-build

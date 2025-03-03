@@ -31,6 +31,17 @@ func (m *MockUdpExporter) SendData(data []byte, signalFormatPrefix string) error
 }
 
 func TestOtlpUdpClient(t *testing.T) {
+	t.Run("Create, start, and stop Client", func(t *testing.T) {
+		client, err := NewClient(WithEndpoint("1.2.3.4:9876"), WithSignalPrefix("E3"))
+		assert.NoError(t, err)
+
+		err = client.Start(context.TODO())
+		assert.NoError(t, err)
+
+		err = client.Stop(context.TODO())
+		assert.NoError(t, err)
+	})
+
 	t.Run("Client uploads traces successfully", func(t *testing.T) {
 		mockUdpExporter := &MockUdpExporter{}
 
