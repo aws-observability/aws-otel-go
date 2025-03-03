@@ -19,13 +19,13 @@ const (
 	DefaultFormatOtelTracesBinaryPrefix = "T1S"
 )
 
-type ClientUdpExporter interface {
+type OtlpTraceClient interface {
 	Shutdown() error
 	SendData(data []byte, signalFormatPrefix string) error
 }
 
 type client struct {
-	udpExporter  ClientUdpExporter
+	udpExporter  OtlpTraceClient
 	signalPrefix string
 	endpoint     string
 }
