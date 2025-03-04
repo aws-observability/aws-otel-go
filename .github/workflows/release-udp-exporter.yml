@@ -1,10 +1,11 @@
-name: Release UDP Exporter
+name: Release ADOT OTLP UDP Exporter
 on:
   workflow_dispatch:
     inputs:
       udp-exporter-version:
         description: The version to tag the release with, e.g., 1.2.0
         required: true
+        type: string
 
 permissions:
   id-token: write
@@ -33,7 +34,7 @@ jobs:
           cd xray-daemon
           wget https://s3.us-west-2.amazonaws.com/aws-xray-assets.us-west-2/xray-daemon/aws-xray-daemon-linux-3.x.zip
           unzip aws-xray-daemon-linux-3.x.zip
-          ./xray -o -n us-west-2 -f ./daemon-logs.log &
+          ./xray -o -n us-west-2 -f ./daemon-logs.log --log-level debug &
 
       - name: Build Sample App
         run: |
@@ -49,13 +50,26 @@ jobs:
         id: call-endpoint
         run: |
           echo "traceId=$(curl localhost:8080/test)" >> $GITHUB_OUTPUT
-          echo $traceId
 
-      - name: Print Daemon Logs
+      - name: Verify X-Ray daemon received traces
         run: |
-          sleep 20
+          sleep 10
+          echo "X-Ray daemon logs:"
           cat xray-daemon/daemon-logs.log
 
+          # Check if the daemon received and processed some data
+          if grep -q "sending.*batch" xray-daemon/daemon-logs.log; then
+            echo "✅ X-Ray daemon processed trace data (AWS upload errors are expected)"
+            exit 0
+          elif grep -q "processor:.*segment" xray-daemon/daemon-logs.log; then
+            echo "✅ X-Ray daemon processed segment data (AWS upload errors are expected)"
+            exit 0
+          else
+            echo "❌ No evidence of traces being received by X-Ray daemon"
+            exit 1
+          fi
+
+      # TODO: Uncomment when we make the first release
       # - name: Tag UDP Exporter module
       #   run: |
       #     git tag exporters/otlptraceudp/v${{ inputs.udp-exporter-version }}
