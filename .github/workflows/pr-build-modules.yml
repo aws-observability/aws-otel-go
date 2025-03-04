@@ -1,0 +1,104 @@
+name: PR Build for AWS OTel Go Modules
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  GO_VERSION: stable
+  GOLANGCI_LINT_VERSION: v1.64
+
+jobs:
+  detect-modules-to-lint-and-test:
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.set-modules.outputs.modules }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set-modules
+        run: |
+          echo "modules=$(find . -name go.mod -d -not -path "./sample-apps/*" -not -path "./sampleapp/*" | sed -r 's|/[^/]+$||' | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+
+  golangci-lint:
+    needs: detect-modules-to-lint-and-test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        modules: ${{ fromJSON(needs.detect-modules-to-lint-and-test.outputs.modules) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: golangci-lint ${{ matrix.modules }}
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
+          working-directory: ${{ matrix.modules }}
+
+  test:
+    needs: detect-modules-to-lint-and-test
+    strategy:
+      matrix:
+        go-version: ["1.24.0", "1.23.0", "~1.22.4"]
+        platform:
+          - os: ubuntu-latest
+            arch: amd64
+          - os: macos-13
+            arch: amd64
+          - os: macos-latest
+            arch: arm64
+          - os: windows-latest
+            arch: amd64
+    runs-on: ${{ matrix.platform.os }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Install Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ matrix.go-version }}
+        check-latest: true
+
+    - name: Run tests for each Module with Coverage
+      if: matrix.platform.os == 'windows-latest'
+      shell: bash
+      env:
+        GOARCH: ${{ matrix.platform.arch }}
+      run: |
+        rootDir=$(pwd)
+        for module in ${{ join(fromJSON(needs.detect-modules-to-lint-and-test.outputs.modules), ' ') }}
+        do
+          cd $module
+          go test -cover -race ./...
+          cd $rootDir
+        done
+
+    - name: Run tests for each Module and Generate Detailed Coverage Report
+      if: matrix.platform.os != 'windows-latest'
+      shell: bash
+      env:
+        GOARCH: ${{ matrix.platform.arch }}
+      run: |
+        rootDir=$(pwd)
+        for module in ${{ join(fromJSON(needs.detect-modules-to-lint-and-test.outputs.modules), ' ') }}
+        do
+          cd $module
+          go test -coverprofile=coverage.out -race ./...
+          go tool cover -func=coverage.out > go_tool_coverage_output.txt
+          cat go_tool_coverage_output.txt
+          coverage=$(cat go_tool_coverage_output.txt | fgrep total | awk '{print substr($3, 1, length($3)-1)}')
+          coverage_rounded=$(printf '%.0f' $coverage)
+          min_coverage=80 # this is 80.00%
+          if [[ coverage_rounded -lt min_coverage ]]; then
+            echo "Module Coverage ($coverage_rounded%) is less than the required minimum coverage ($min_coverage%)"
+            exit 1
+          else
+            echo "Module Coverage ($coverage_rounded%) satisfies the required minimum coverage ($min_coverage%)"
+          fi
+          cd $rootDir
+        done
