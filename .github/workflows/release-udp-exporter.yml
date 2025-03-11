@@ -69,10 +69,9 @@ jobs:
             exit 1
           fi
 
-      # TODO: Uncomment when we make the first release
-      # - name: Tag UDP Exporter module
-      #   run: |
-      #     git tag exporters/otlptraceudp/v${{ inputs.udp-exporter-version }}
+      - name: Tag UDP Exporter module
+        run: |
+          git tag exporters/otlptraceudp/v${{ inputs.udp-exporter-version }}
 
-      # - name: Publish tag for UDP Exporter module
-      #   run: git push --tags
+      - name: Publish tag for UDP Exporter module
+        run: git push --tags
