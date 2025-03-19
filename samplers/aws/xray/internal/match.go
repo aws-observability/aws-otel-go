@@ -24,7 +24,7 @@ func wildcardMatch(pattern, text string) (bool, error) {
 	pattern = strings.ToLower(pattern)
 	text = strings.ToLower(text)
 
-	match, err := regexp.MatchString(toRegexPattern(pattern), text)
+	match, err := regexp.MatchString("^"+toRegexPattern(pattern)+"$", text)
 	if err != nil {
 		return false, fmt.Errorf("wildcardMatch: unable to perform regex matching: %w", err)
 	}

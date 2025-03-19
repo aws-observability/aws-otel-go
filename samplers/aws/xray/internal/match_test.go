@@ -40,7 +40,7 @@ func TestWildCardMatchPositive(t *testing.T) {
 			"a*b*a*b*a*b*a*b*a*",
 			"akljd9gsdfbkjhaabajkhbbyiaahkjbjhbuykjakjhabkjhbabjhkaabbabbaaakljdfsjklababkjbsdabab",
 		},
-		{"a*na*ha", "anananahahanahana"},
+		{"a*na*ha", "anananahahanahanaha"},
 		{"***a", "a"},
 		{"**a**", "a"},
 		{"a**b", "ab"},
@@ -52,10 +52,18 @@ func TestWildCardMatchPositive(t *testing.T) {
 		{"?at", "cat"},
 		{"?o?se", "horse"},
 		{"?o?se", "mouse"},
-		{"*s", "horse"},
+		{"*s", "horses"},
 		{"J*", "Jeep"},
 		{"J*", "jeep"},
 		{"*/foo", "/bar/foo"},
+		{"*", "HelloWorld"},
+		{"HelloWorld", "HelloWorld"},
+		{"Hello*", "HelloWorld"},
+		{"*World", "HelloWorld"},
+		{"?ello*", "HelloWorld"},
+		{"Hell?W*d", "HelloWorld"},
+		{"*.World", "Hello.World"},
+		{"*.World", "Bye.World"},
 	}
 
 	for _, test := range tests {
@@ -82,6 +90,10 @@ func TestWildCardMatchNegative(t *testing.T) {
 		{"??", "a"},
 		{"??", "a"},
 		{"*?*a", "a"},
+		{"/", "target"},
+		{"/", "/target"},
+		{"a*na*ha", "anananahahanahana"},
+		{"*s", "horse"},
 	}
 
 	for _, test := range tests {
