@@ -116,7 +116,6 @@ func (r *Rule) appliesTo(parameters sdktrace.SamplingParameters, serviceName str
 	var httpURL string
 	var httpHost string
 	var httpMethod string
-	var HTTPURLPathMatcher bool
 
 	if parameters.Attributes != nil {
 		for _, attrs := range parameters.Attributes {
@@ -181,24 +180,18 @@ func (r *Rule) appliesTo(parameters sdktrace.SamplingParameters, serviceName str
 		return HTTPHostMatcher, nil
 	}
 
-	if httpURL != "" {
-		HTTPURLPathMatcher, err = wildcardMatch(r.ruleProperties.URLPath, httpURL)
-		if err != nil {
-			return HTTPURLPathMatcher, err
-		}
+	HTTPURLPathMatcher, err := wildcardMatch(r.ruleProperties.URLPath, httpURL)
+	HTTPTargetMatcher, err2 := wildcardMatch(r.ruleProperties.URLPath, httpTarget)
+	targetMatched := HTTPURLPathMatcher || HTTPTargetMatcher
+	if err != nil {
+		return HTTPURLPathMatcher, err
+	}
+	if err2 != nil {
+		return HTTPTargetMatcher, err
+	}
 
-		if !HTTPURLPathMatcher {
-			return HTTPURLPathMatcher, nil
-		}
-	} else {
-		HTTPURLPathMatcher, err = wildcardMatch(r.ruleProperties.URLPath, httpTarget)
-		if err != nil {
-			return HTTPURLPathMatcher, err
-		}
-
-		if !HTTPURLPathMatcher {
-			return HTTPURLPathMatcher, nil
-		}
+	if !targetMatched {
+		return targetMatched, nil
 	}
 
 	return true, nil
