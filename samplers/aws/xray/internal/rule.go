@@ -4,6 +4,8 @@
 package internal // import "github.com/aws-observability/aws-otel-go/samplers/aws/xray/internal"
 
 import (
+	"net/url"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -180,18 +182,31 @@ func (r *Rule) appliesTo(parameters sdktrace.SamplingParameters, serviceName str
 		return HTTPHostMatcher, nil
 	}
 
-	HTTPURLPathMatcher, err := wildcardMatch(r.ruleProperties.URLPath, httpURL)
-	HTTPTargetMatcher, err2 := wildcardMatch(r.ruleProperties.URLPath, httpTarget)
-	targetMatched := HTTPURLPathMatcher || HTTPTargetMatcher
-	if err != nil {
-		return HTTPURLPathMatcher, err
+	// target may be in url
+	if httpTarget == "" && httpURL != "" {
+		schemeEndIndex := strings.Index(httpURL, "://")
+		// For network calls, URL usually has `scheme://host[:port][path][?query][#fragment]` format
+		// Per spec, url.full is always populated with scheme://
+		// If scheme is not present, assume it's bad instrumentation and ignore.
+		if schemeEndIndex > -1 {
+			myurl, err := url.Parse(httpURL)
+			httpTarget = myurl.Path
+			if err != nil || httpTarget == "" {
+				httpTarget = "/"
+			}
+		}
+	} else if httpTarget == "" && httpURL == "" {
+		// When missing, the URL Path is assumed to be "/"
+		httpTarget = "/"
 	}
-	if err2 != nil {
+
+	HTTPTargetMatcher, err := wildcardMatch(r.ruleProperties.URLPath, httpTarget)
+	if err != nil {
 		return HTTPTargetMatcher, err
 	}
 
-	if !targetMatched {
-		return targetMatched, nil
+	if !HTTPTargetMatcher {
+		return HTTPTargetMatcher, nil
 	}
 
 	return true, nil

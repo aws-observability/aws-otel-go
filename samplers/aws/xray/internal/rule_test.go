@@ -220,14 +220,14 @@ func TestAppliesToMatchingWithAllAttrs(t *testing.T) {
 			ServiceType: "EC2",
 			Host:        "localhost",
 			HTTPMethod:  "GET",
-			URLPath:     "http://127.0.0.1:2000",
+			URLPath:     "/abc",
 		},
 	}
 
 	httpAttrs := []attribute.KeyValue{
 		attribute.String("http.host", "localhost"),
 		attribute.String("http.method", "GET"),
-		attribute.String("http.url", "http://127.0.0.1:2000"),
+		attribute.String("http.url", "http://127.0.0.1:2000/abc"),
 	}
 
 	match, err := r1.appliesTo(trace.SamplingParameters{Attributes: httpAttrs}, "test-service", "EC2")
