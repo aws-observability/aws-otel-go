@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-package xray // import "go.opentelemetry.io/contrib/samplers/aws/xray"
+package xray // import "github.com/aws-observability/aws-otel-go/samplers/aws/xray"
 
 import (
 	"sync"
