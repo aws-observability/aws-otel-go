@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/aws-observability/aws-otel-go/exporters/otlptraceudp"
+	"github.com/aws-observability/aws-otel-go/exporters/xrayudp"
 	"go.opentelemetry.io/contrib/propagators/aws/xray"
 	"go.opentelemetry.io/otel"
 
@@ -56,7 +56,7 @@ func start_otel() error {
 
 	idg := xray.NewIDGenerator()
 
-	myudpexporter, _ := otlptraceudp.New(ctx)
+	myudpexporter, _ := xrayudp.NewSpanExporter(ctx)
 
 	tp := trace.NewTracerProvider(
 		trace.WithSpanProcessor(trace.NewSimpleSpanProcessor(myudpexporter)),

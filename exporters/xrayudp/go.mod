@@ -1,4 +1,4 @@
-module github.com/aws-observability/aws-otel-go/exporters/otlptraceudp
+module github.com/aws-observability/aws-otel-go/exporters/xrayudp
 
 go 1.22.0
 
