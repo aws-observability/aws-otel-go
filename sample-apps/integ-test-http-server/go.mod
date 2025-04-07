@@ -2,10 +2,10 @@ module application.go
 
 go 1.23.2
 
-replace github.com/aws-observability/aws-otel-go/exporters/otlptraceudp => ../../exporters/otlptraceudp
+replace github.com/aws-observability/aws-otel-go/exporters/xrayudp => ../../exporters/xrayudp
 
 require (
-	github.com/aws-observability/aws-otel-go/exporters/otlptraceudp v0.0.1
+	github.com/aws-observability/aws-otel-go/exporters/xrayudp v0.0.1
 	go.opentelemetry.io/contrib/propagators/aws v1.23.0
 	go.opentelemetry.io/otel v1.34.0
 	go.opentelemetry.io/otel/sdk v1.34.0
