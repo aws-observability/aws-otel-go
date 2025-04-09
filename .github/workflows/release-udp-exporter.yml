@@ -25,7 +25,7 @@ jobs:
 
       - name: Ensure Unit Tests are passing
         run: |
-          cd exporters/otlptraceudp
+          cd exporters/xrayudp
           go test ./...
 
       - name: Download and run X-Ray Daemon
@@ -38,12 +38,12 @@ jobs:
 
       - name: Build Sample App
         run: |
-          cd sample-apps/integ-test-http-server
+          cd .github/test-sample-apps/integ-test-http-server
           go build -o integ-test-http-server .
 
       - name: Run Sample App in Background
         run: |
-          cd sample-apps/integ-test-http-server
+          cd .github/test-sample-apps/integ-test-http-server
           ./integ-test-http-server &
 
       - name: Call Sample App Endpoint
@@ -72,7 +72,7 @@ jobs:
       # TODO: Uncomment when we make the first release
       # - name: Tag UDP Exporter module
       #   run: |
-      #     git tag exporters/otlptraceudp/v${{ inputs.udp-exporter-version }}
+      #     git tag exporters/xrayudp/v${{ inputs.udp-exporter-version }}
 
       # - name: Publish tag for UDP Exporter module
       #   run: git push --tags
