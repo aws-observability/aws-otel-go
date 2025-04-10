@@ -1,4 +1,4 @@
-name: Release ADOT OTLP UDP Exporter
+name: Release ADOT X-Ray UDP Exporter
 on:
   workflow_dispatch:
     inputs:
@@ -8,14 +8,21 @@ on:
         type: string
 
 permissions:
-  id-token: write
   contents: write
 
 jobs:
-  test-and-release:
+  validate-udp-exporter-e2e-test:
+    name: "Validate X-Ray UDP Exporter E2E Test Succeeds"
+    uses: ./.github/workflows/udp-exporter-e2e-test.yml
+    secrets: inherit
+    permissions:
+      id-token: write
+
+  release-udp-exporter:
     runs-on: ubuntu-latest
+    needs: validate-udp-exporter-e2e-test
     steps:
-      - name: Checkout Contrib Repo @ SHA - ${{ github.sha }}
+      - name: Checkout Repo @ SHA - ${{ github.sha }}
         uses: actions/checkout@v4
       - name: Install Go
         uses: actions/setup-go@v5
@@ -28,51 +35,10 @@ jobs:
           cd exporters/xrayudp
           go test ./...
 
-      - name: Download and run X-Ray Daemon
+      - name: Tag UDP Exporter module
         run: |
-          mkdir xray-daemon
-          cd xray-daemon
-          wget https://s3.us-west-2.amazonaws.com/aws-xray-assets.us-west-2/xray-daemon/aws-xray-daemon-linux-3.x.zip
-          unzip aws-xray-daemon-linux-3.x.zip
-          ./xray -o -n us-west-2 -f ./daemon-logs.log --log-level debug &
-
-      - name: Build Sample App
-        run: |
-          cd .github/test-sample-apps/integ-test-http-server
-          go build -o integ-test-http-server .
-
-      - name: Run Sample App in Background
-        run: |
-          cd .github/test-sample-apps/integ-test-http-server
-          ./integ-test-http-server &
-
-      - name: Call Sample App Endpoint
-        id: call-endpoint
-        run: |
-          echo "traceId=$(curl localhost:8080/test)" >> $GITHUB_OUTPUT
-
-      - name: Verify X-Ray daemon received traces
-        run: |
-          sleep 10
-          echo "X-Ray daemon logs:"
-          cat xray-daemon/daemon-logs.log
-
-          # Check if the daemon received and processed some data
-          if grep -q "sending.*batch" xray-daemon/daemon-logs.log; then
-            echo "✅ X-Ray daemon processed trace data (AWS upload errors are expected)"
-            exit 0
-          elif grep -q "processor:.*segment" xray-daemon/daemon-logs.log; then
-            echo "✅ X-Ray daemon processed segment data (AWS upload errors are expected)"
-            exit 0
-          else
-            echo "❌ No evidence of traces being received by X-Ray daemon"
-            exit 1
-          fi
+          git tag exporters/xrayudp/v${{ inputs.udp-exporter-version }}
 
       # TODO: Uncomment when we make the first release
-      # - name: Tag UDP Exporter module
-      #   run: |
-      #     git tag exporters/xrayudp/v${{ inputs.udp-exporter-version }}
-
       # - name: Publish tag for UDP Exporter module
       #   run: git push --tags
