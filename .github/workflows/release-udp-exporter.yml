@@ -1,4 +1,4 @@
-name: Release ADOT OTLP UDP Exporter
+name: Release ADOT X-Ray UDP Exporter
 on:
   workflow_dispatch:
     inputs:
@@ -28,13 +28,19 @@ jobs:
           cd exporters/xrayudp
           go test ./...
 
+      - name: Configure AWS credentials for Testing Tracing
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.XRAY_UDP_EXPORTER_TEST_ROLE }}
+          aws-region: 'us-east-1'
+
       - name: Download and run X-Ray Daemon
         run: |
           mkdir xray-daemon
           cd xray-daemon
-          wget https://s3.us-west-2.amazonaws.com/aws-xray-assets.us-west-2/xray-daemon/aws-xray-daemon-linux-3.x.zip
+          wget https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-linux-3.x.zip
           unzip aws-xray-daemon-linux-3.x.zip
-          ./xray -o -n us-west-2 -f ./daemon-logs.log --log-level debug &
+          ./xray -o -n us-east-2 -f ./daemon-logs.log --log-level debug &
 
       - name: Build Sample App
         run: |
@@ -51,22 +57,19 @@ jobs:
         run: |
           echo "traceId=$(curl localhost:8080/test)" >> $GITHUB_OUTPUT
 
-      - name: Verify X-Ray daemon received traces
+      - name: Check if traces are successfully sent to AWS X-Ray
         run: |
-          sleep 10
-          echo "X-Ray daemon logs:"
-          cat xray-daemon/daemon-logs.log
+          sleep 20
+          # # Print Daemon Logs for debugging
+          # cat xray-daemon/daemon-logs.log
 
-          # Check if the daemon received and processed some data
-          if grep -q "sending.*batch" xray-daemon/daemon-logs.log; then
-            echo "✅ X-Ray daemon processed trace data (AWS upload errors are expected)"
-            exit 0
-          elif grep -q "processor:.*segment" xray-daemon/daemon-logs.log; then
-            echo "✅ X-Ray daemon processed segment data (AWS upload errors are expected)"
-            exit 0
-          else
-            echo "❌ No evidence of traces being received by X-Ray daemon"
+          traceId=${{ steps.call-endpoint.outputs.traceId }}
+          numTracesFound=$(aws xray batch-get-traces --trace-ids $traceId --region us-east-2 | jq '.Traces' | jq length)
+          if [[ numTracesFound -ne "1" ]]; then
+            echo "TraceId $traceId not found in X-Ray."
             exit 1
+          else
+            echo "TraceId $traceId found in X-Ray."
           fi
 
       # TODO: Uncomment when we make the first release
