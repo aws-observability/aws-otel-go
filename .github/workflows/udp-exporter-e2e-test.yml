@@ -1,0 +1,65 @@
+name: Test ADOT X-Ray UDP Exporter
+on:
+  workflow_call:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+
+jobs:
+  udp-exporter-e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo @ SHA - ${{ github.sha }}
+        uses: actions/checkout@v4
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+            go-version: "1.24.0"
+            check-latest: true
+
+      - name: Configure AWS credentials for Testing Tracing
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.XRAY_UDP_EXPORTER_TEST_ROLE }}
+          aws-region: 'us-east-1'
+
+      - name: Download and run X-Ray Daemon
+        run: |
+          mkdir xray-daemon
+          cd xray-daemon
+          wget https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-linux-3.x.zip
+          unzip aws-xray-daemon-linux-3.x.zip
+          ./xray -o -n us-east-2 -f ./daemon-logs.log --log-level debug &
+
+      - name: Build Sample App
+        run: |
+          cd .github/test-sample-apps/integ-test-http-server
+          go build -o integ-test-http-server .
+
+      - name: Run Sample App in Background
+        run: |
+          cd .github/test-sample-apps/integ-test-http-server
+          ./integ-test-http-server &
+
+      - name: Call Sample App Endpoint
+        id: call-endpoint
+        run: |
+          echo "traceId=$(curl localhost:8080/test)" >> $GITHUB_OUTPUT
+
+      - name: Check if traces are successfully sent to AWS X-Ray
+        run: |
+          sleep 20
+          # # Print Daemon Logs for debugging
+          # cat xray-daemon/daemon-logs.log
+
+          traceId=${{ steps.call-endpoint.outputs.traceId }}
+          numTracesFound=$(aws xray batch-get-traces --trace-ids $traceId --region us-east-2 | jq '.Traces' | jq length)
+          if [[ numTracesFound -ne "1" ]]; then
+            echo "TraceId $traceId not found in X-Ray."
+            exit 1
+          else
+            echo "TraceId $traceId found in X-Ray."
+          fi

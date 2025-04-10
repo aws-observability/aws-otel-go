@@ -8,14 +8,21 @@ on:
         type: string
 
 permissions:
-  id-token: write
   contents: write
 
 jobs:
-  test-and-release:
+  validate-udp-exporter-e2e-test:
+    name: "Validate X-Ray UDP Exporter E2E Test Succeeds"
+    uses: ./.github/workflows/udp-exporter-e2e-test.yml
+    secrets: inherit
+    permissions:
+      id-token: write
+
+  release-udp-exporter:
     runs-on: ubuntu-latest
+    needs: validate-udp-exporter-e2e-test
     steps:
-      - name: Checkout Contrib Repo @ SHA - ${{ github.sha }}
+      - name: Checkout Repo @ SHA - ${{ github.sha }}
         uses: actions/checkout@v4
       - name: Install Go
         uses: actions/setup-go@v5
@@ -28,54 +35,10 @@ jobs:
           cd exporters/xrayudp
           go test ./...
 
-      - name: Configure AWS credentials for Testing Tracing
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.XRAY_UDP_EXPORTER_TEST_ROLE }}
-          aws-region: 'us-east-1'
-
-      - name: Download and run X-Ray Daemon
+      - name: Tag UDP Exporter module
         run: |
-          mkdir xray-daemon
-          cd xray-daemon
-          wget https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-linux-3.x.zip
-          unzip aws-xray-daemon-linux-3.x.zip
-          ./xray -o -n us-east-2 -f ./daemon-logs.log --log-level debug &
-
-      - name: Build Sample App
-        run: |
-          cd .github/test-sample-apps/integ-test-http-server
-          go build -o integ-test-http-server .
-
-      - name: Run Sample App in Background
-        run: |
-          cd .github/test-sample-apps/integ-test-http-server
-          ./integ-test-http-server &
-
-      - name: Call Sample App Endpoint
-        id: call-endpoint
-        run: |
-          echo "traceId=$(curl localhost:8080/test)" >> $GITHUB_OUTPUT
-
-      - name: Check if traces are successfully sent to AWS X-Ray
-        run: |
-          sleep 20
-          # # Print Daemon Logs for debugging
-          # cat xray-daemon/daemon-logs.log
-
-          traceId=${{ steps.call-endpoint.outputs.traceId }}
-          numTracesFound=$(aws xray batch-get-traces --trace-ids $traceId --region us-east-2 | jq '.Traces' | jq length)
-          if [[ numTracesFound -ne "1" ]]; then
-            echo "TraceId $traceId not found in X-Ray."
-            exit 1
-          else
-            echo "TraceId $traceId found in X-Ray."
-          fi
+          git tag exporters/xrayudp/v${{ inputs.udp-exporter-version }}
 
       # TODO: Uncomment when we make the first release
-      # - name: Tag UDP Exporter module
-      #   run: |
-      #     git tag exporters/xrayudp/v${{ inputs.udp-exporter-version }}
-
       # - name: Publish tag for UDP Exporter module
       #   run: git push --tags
