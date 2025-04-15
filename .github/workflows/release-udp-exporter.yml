@@ -35,10 +35,14 @@ jobs:
           cd exporters/xrayudp
           go test ./...
 
-      - name: Tag UDP Exporter module
+      # Publish to GitHub releases
+      - name: Create GH release with tag
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         run: |
-          git tag exporters/xrayudp/v${{ inputs.udp-exporter-version }}
-
-      # TODO: Uncomment when we make the first release
-      # - name: Publish tag for UDP Exporter module
-      #   run: git push --tags
+          gh release create --target "$GITHUB_REF_NAME" \
+            --title "Release exporters/xrayudp/v${{ inputs.udp-exporter-version }}" \
+            --notes "Please refer to the [Changelog](https://github.com/aws-observability/aws-otel-go/blob/main/exporters/xrayudp/CHANGELOG.md) for more details" \
+            --draft \
+            "exporters/xrayudp/v${{ inputs.udp-exporter-version }}"
