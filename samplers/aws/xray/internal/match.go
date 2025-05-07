@@ -1,7 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
+// Modifications Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
+// 2025-05-07: Begin Amazon modification.
 package internal // import "github.com/aws-observability/aws-otel-go/samplers/aws/xray/internal"
+// End of Amazon modification.
 
 import (
 	"fmt"
@@ -24,7 +27,9 @@ func wildcardMatch(pattern, text string) (bool, error) {
 	pattern = strings.ToLower(pattern)
 	text = strings.ToLower(text)
 
+	// 2025-05-07: Begin Amazon modification.
 	match, err := regexp.MatchString("^"+toRegexPattern(pattern)+"$", text)
+	// End of Amazon modification.
 	if err != nil {
 		return false, fmt.Errorf("wildcardMatch: unable to perform regex matching: %w", err)
 	}

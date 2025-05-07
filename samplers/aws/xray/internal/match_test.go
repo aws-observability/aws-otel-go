@@ -1,5 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
+// Modifications Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 package internal
 
@@ -12,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// 2025-05-07: Begin Amazon modification.
 // assert wildcard match is positive.
 func TestWildCardMatchPositive(t *testing.T) {
 	tests := []struct {
@@ -102,6 +104,8 @@ func TestWildCardMatchNegative(t *testing.T) {
 		assert.False(t, match)
 	}
 }
+
+// End of Amazon modification.
 
 func TestLongStrings(t *testing.T) {
 	chars := []byte{'a', 'b', 'c', 'd'}
