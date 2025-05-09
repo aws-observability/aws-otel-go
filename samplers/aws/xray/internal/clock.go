@@ -1,7 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
+// Modifications Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
+// 2025-05-07: Begin Amazon modification.
 package internal // import "github.com/aws-observability/aws-otel-go/samplers/aws/xray/internal"
+// End of Amazon modification.
 
 import (
 	"time"

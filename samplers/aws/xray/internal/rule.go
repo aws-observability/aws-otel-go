@@ -1,7 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
+// Modifications Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
+// 2025-05-07: Begin Amazon modification.
 package internal // import "github.com/aws-observability/aws-otel-go/samplers/aws/xray/internal"
+// End of Amazon modification.
 
 import (
 	"net/url"
@@ -111,6 +114,8 @@ func (r *Rule) Sample(parameters sdktrace.SamplingParameters, now time.Time) sdk
 	return sd
 }
 
+// 2025-05-07: Begin Amazon modification.
+
 // appliesTo performs a matching against rule properties to see
 // if a given rule does match with any of the rule set on AWS X-Ray console.
 func (r *Rule) appliesTo(parameters sdktrace.SamplingParameters, serviceName string, cloudPlatform string) (bool, error) {
@@ -211,6 +216,8 @@ func (r *Rule) appliesTo(parameters sdktrace.SamplingParameters, serviceName str
 
 	return true, nil
 }
+
+// End of Amazon modification.
 
 // attributeMatching performs a match on attributes set by users on AWS X-Ray console.
 func (r *Rule) attributeMatching(parameters sdktrace.SamplingParameters) (bool, error) {

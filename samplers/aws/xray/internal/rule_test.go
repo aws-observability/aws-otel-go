@@ -1,5 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
+// Modifications Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 package internal
 
@@ -212,6 +213,8 @@ func TestTraceIDRatioBasedSamplerFixedRateZero(t *testing.T) {
 	assert.Equal(t, trace.Drop, sd.Decision)
 }
 
+// 2025-05-07: Begin Amazon modification.
+
 func TestAppliesToMatchingWithAllAttrs(t *testing.T) {
 	r1 := Rule{
 		ruleProperties: ruleProperties{
@@ -234,6 +237,8 @@ func TestAppliesToMatchingWithAllAttrs(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, match)
 }
+
+// End of Amazon modification.
 
 // assert that matching will happen when rules has all the HTTP attrs set as '*' and
 // span has any attribute values.
