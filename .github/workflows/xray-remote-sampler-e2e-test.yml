@@ -1,0 +1,59 @@
+name: Test X-Ray Remote Sampler
+on:
+  workflow_call:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+
+jobs:
+  xray-remote-sampler-e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo @ SHA - ${{ github.sha }}
+        uses: actions/checkout@v4
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+            go-version: "1.24.0"
+            check-latest: true
+
+      - name: Configure AWS credentials for Testing Tracing
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.XRAY_UDP_EXPORTER_TEST_ROLE }} # UDP Exporter Test Role has the required X-Ray permissions
+          aws-region: 'us-east-1'
+
+      - name: Download and run X-Ray Daemon
+        run: |
+          mkdir xray-daemon
+          cd xray-daemon
+          wget https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-linux-3.x.zip
+          unzip aws-xray-daemon-linux-3.x.zip
+          ./xray -o -n us-east-2 -f ./daemon-logs.log --log-level debug &
+
+      - name: Build X-Ray Remote Sampler Sample App
+        run: |
+          cd .github/test-sample-apps/xray-remote-sampler-test-app
+          go build -o xray-remote-sampler-test-app .
+
+      - name: Run Sample App in Background
+        run: |
+          cd .github/test-sample-apps/xray-remote-sampler-test-app
+          ./xray-remote-sampler-test-app &
+
+      - uses: actions/checkout@v4
+        with:
+          repository: 'aws-observability/aws-otel-community'
+          ref: master
+          fetch-depth: 0
+
+      - name: Build with Gradle Integration Tests
+        run: ./gradlew :integration-tests:build
+        working-directory: centralized-sampling-tests
+
+      - name: Build with Gradle Integration Tests
+        run: ./gradlew :integration-tests:run
+        working-directory: centralized-sampling-tests

@@ -36,13 +36,13 @@ jobs:
 
       - name: Build Sample App
         run: |
-          cd .github/test-sample-apps/integ-test-http-server
-          go build -o integ-test-http-server .
+          cd .github/test-sample-apps/udp-exporter-test-app
+          go build -o udp-exporter-test-app .
 
       - name: Run Sample App in Background
         run: |
-          cd .github/test-sample-apps/integ-test-http-server
-          ./integ-test-http-server &
+          cd .github/test-sample-apps/udp-exporter-test-app
+          ./udp-exporter-test-app &
 
       - name: Call Sample App Endpoint
         id: call-endpoint
