@@ -1,0 +1,48 @@
+name: Release ADOT X-Ray UDP Exporter
+on:
+  workflow_dispatch:
+    inputs:
+      udp-exporter-version:
+        description: The version to tag the release with, e.g., 1.2.0
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  validate-udp-exporter-e2e-test:
+    name: "Validate X-Ray UDP Exporter E2E Test Succeeds"
+    uses: ./.github/workflows/udp-exporter-e2e-test.yml
+    secrets: inherit
+    permissions:
+      id-token: write
+
+  release-udp-exporter:
+    runs-on: ubuntu-latest
+    needs: validate-udp-exporter-e2e-test
+    steps:
+      - name: Checkout Repo @ SHA - ${{ github.sha }}
+        uses: actions/checkout@v4
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+            go-version: "1.24.0"
+            check-latest: true
+
+      - name: Ensure Unit Tests are passing
+        run: |
+          cd exporters/xrayudp
+          go test ./...
+
+      # Publish to GitHub releases
+      - name: Create GH release with tag
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        run: |
+          gh release create --target "$GITHUB_REF_NAME" \
+            --title "Release exporters/xrayudp/v${{ inputs.udp-exporter-version }}" \
+            --notes "Please refer to the [Changelog](https://github.com/aws-observability/aws-otel-go/blob/main/exporters/xrayudp/CHANGELOG.md) for more details" \
+            --draft \
+            "exporters/xrayudp/v${{ inputs.udp-exporter-version }}"

@@ -1,0 +1,48 @@
+name: Release X-Ray Remote Sampler
+on:
+  workflow_dispatch:
+    inputs:
+      remote-sampler-version:
+        description: The version to tag the release with, e.g., 1.2.0
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  validate-xray-remote-sampler-e2e-test:
+    name: "Validate X-Ray Remote Sampler E2E Test Succeeds"
+    uses: ./.github/workflows/xray-remote-sampler-e2e-test.yml
+    secrets: inherit
+    permissions:
+      id-token: write
+
+  release-xray-remote-sampler:
+    runs-on: ubuntu-latest
+    needs: validate-xray-remote-sampler-e2e-test
+    steps:
+      - name: Checkout Repo @ SHA - ${{ github.sha }}
+        uses: actions/checkout@v4
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+            go-version: "1.24.0"
+            check-latest: true
+
+      - name: Ensure Unit Tests are passing
+        run: |
+          cd samplers/aws/xray/
+          go test ./...
+
+      # Publish to GitHub releases
+      - name: Create GH release with tag
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        run: |
+          gh release create --target "$GITHUB_REF_NAME" \
+            --title "Release samplers/aws/xray/v${{ inputs.remote-sampler-version }}" \
+            --notes "Please refer to the [Changelog](https://github.com/aws-observability/aws-otel-go/blob/main/samplers/aws/xray/CHANGELOG.md) for more details" \
+            --draft \
+            "samplers/aws/xray/v${{ inputs.remote-sampler-version }}"
