@@ -13,7 +13,7 @@ on:
       test_duration_minutes:
         description: 'The duration of the Soak Tests in minutes.'
         required: true
-        default: 300
+        default: "300"
   schedule:
     - cron: '0 15 * * *'
 env:
@@ -49,22 +49,24 @@ jobs:
       # NOTE: The configuration of `APP_PATH` is repo dependent
       APP_PATH: sampleapp
       LOGS_NAMESPACE: ${{ github.repository }}/soak-tests-${{ matrix.app-platform }}-${{ matrix.instrumentation-type }}
-      SHA: ${{ github.event.pull_request.title }}
-      DURATION: github.event.inputs.test_duration_minutes
     steps:
     # MARK: - GitHub Workflow Event Type Specific Values
 
       - name: Use INPUT as commit SHA
+        env:
+          TARGET_SHA: ${{ github.event.inputs.target_commit_sha }}
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
-          echo "TARGET_SHA=$SHA" | tee --append $GITHUB_ENV;
+          echo "$TARGET_SHA" | tee --append $GITHUB_ENV;
       - name: Use LATEST as commit SHA
         if: ${{ github.event_name != 'workflow_dispatch' }}
         run: |
           echo "TARGET_SHA=${{ github.sha }}" | tee --append $GITHUB_ENV;
       - name: Configure Performance Test Duration
+        env:
+          TEST_DURATION_MINUTES: ${{ github.event.inputs.test_duration_minutes || env.DEFAULT_TEST_DURATION_MINUTES }}
         run: |
-          echo "TEST_DURATION_MINUTES=${{ DURATION || env.DEFAULT_TEST_DURATION_MINUTES }}" | tee --append $GITHUB_ENV;
+          echo "$TEST_DURATION_MINUTES" | tee --append $GITHUB_ENV;
       - name: Clone This Repo @ ${{ env.TARGET_SHA }}
         uses: actions/checkout@v2
         with:
