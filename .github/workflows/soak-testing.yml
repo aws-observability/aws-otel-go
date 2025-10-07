@@ -49,20 +49,22 @@ jobs:
       # NOTE: The configuration of `APP_PATH` is repo dependent
       APP_PATH: sampleapp
       LOGS_NAMESPACE: ${{ github.repository }}/soak-tests-${{ matrix.app-platform }}-${{ matrix.instrumentation-type }}
+      SHA: ${{ github.event.pull_request.title }}
+      DURATION: github.event.inputs.test_duration_minutes
     steps:
     # MARK: - GitHub Workflow Event Type Specific Values
 
       - name: Use INPUT as commit SHA
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
-          echo "TARGET_SHA=${{ github.event.inputs.target_commit_sha }}" | tee --append $GITHUB_ENV;
+          echo "TARGET_SHA=$SHA" | tee --append $GITHUB_ENV;
       - name: Use LATEST as commit SHA
         if: ${{ github.event_name != 'workflow_dispatch' }}
         run: |
           echo "TARGET_SHA=${{ github.sha }}" | tee --append $GITHUB_ENV;
       - name: Configure Performance Test Duration
         run: |
-          echo "TEST_DURATION_MINUTES=${{ github.event.inputs.test_duration_minutes || env.DEFAULT_TEST_DURATION_MINUTES }}" | tee --append $GITHUB_ENV;
+          echo "TEST_DURATION_MINUTES=${{ DURATION || env.DEFAULT_TEST_DURATION_MINUTES }}" | tee --append $GITHUB_ENV;
       - name: Clone This Repo @ ${{ env.TARGET_SHA }}
         uses: actions/checkout@v2
         with:
