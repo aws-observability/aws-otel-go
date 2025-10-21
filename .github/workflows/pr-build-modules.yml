@@ -12,6 +12,9 @@ env:
   GO_VERSION: stable
   GOLANGCI_LINT_VERSION: v1.64
 
+permissions:
+  contents: read
+
 jobs:
   detect-modules-to-lint-and-test:
     runs-on: ubuntu-latest
