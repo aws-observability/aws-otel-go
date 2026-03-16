@@ -9,7 +9,7 @@ on:
       - main
 
 env:
-  GO_VERSION: stable
+  GO_VERSION: "1.24"
   GOLANGCI_LINT_VERSION: v1.64
 
 jobs:
@@ -48,7 +48,7 @@ jobs:
         platform:
           - os: ubuntu-latest
             arch: amd64
-          - os: macos-13
+          - os: macos-14
             arch: amd64
           - os: macos-latest
             arch: arm64
