@@ -9,7 +9,7 @@ on:
       - main
 
 env:
-  GO_VERSION: stable
+  GO_VERSION: "1.24"
   GOLANGCI_LINT_VERSION: v1.64
 
 jobs:
