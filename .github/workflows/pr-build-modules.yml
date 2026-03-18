@@ -18,7 +18,7 @@ jobs:
     outputs:
       modules: ${{ steps.set-modules.outputs.modules }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 #v4.3.1
       - id: set-modules
         run: |
           echo "modules=$(find . -name go.mod -d -not -path "./.github/*" -not -path "./sampleapp/*" | sed -r 's|/[^/]+$||' | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
@@ -30,12 +30,12 @@ jobs:
       matrix:
         modules: ${{ fromJSON(needs.detect-modules-to-lint-and-test.outputs.modules) }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 #v4.3.1
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff #v5.6.0
         with:
           go-version: ${{ env.GO_VERSION }}
       - name: golangci-lint ${{ matrix.modules }}
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@55c2c1448f86e01eaae002a5a3a9624417608d84 #v6.5.2
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
           working-directory: ${{ matrix.modules }}
@@ -57,9 +57,9 @@ jobs:
     runs-on: ${{ matrix.platform.os }}
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 #v4.3.1
     - name: Install Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff #v5.6.0
       with:
         go-version: ${{ matrix.go-version }}
         check-latest: true
